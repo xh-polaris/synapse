@@ -17,7 +17,7 @@ const (
 func init() {
 	code.Register(
 		UnSupportAuthType,
-		"the auth type is not supported",
+		"the auth type {type} is not supported",
 		code.WithAffectStability(false),
 	)
 	code.Register(

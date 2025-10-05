@@ -23,7 +23,7 @@ type SystemService struct {
 
 func (s *SystemService) Send(ctx context.Context, req *system.SendVerifyCodeReq) (*system.SendVerifyCodeResp, error) {
 	if req.AuthType != cst.AuthTypePhoneVerify {
-		return nil, errorx.New(errno.ErrInvalidAuthType)
+		return nil, errorx.New(errno.ErrInvalidAuthType, errorx.KV("type", req.AuthType))
 	}
 
 	param := &sms.SMSParam{Code: genCode(), Expire: time.Duration(req.Expire) * time.Second}
@@ -41,7 +41,7 @@ func genCode() string {
 
 func (s *SystemService) Check(ctx context.Context, req *system.CheckVerifyCodeReq) (*system.CheckVerifyCodeResp, error) {
 	if req.AuthType != cst.AuthTypePhoneVerify {
-		return nil, errorx.New(errno.ErrInvalidAuthType)
+		return nil, errorx.New(errno.ErrInvalidAuthType, errorx.KV("type", req.AuthType))
 	}
 
 	check, err := s.sms.Check(ctx, req.App.Name, req.Cause, req.AuthId, req.Verify)

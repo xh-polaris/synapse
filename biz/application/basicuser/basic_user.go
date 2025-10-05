@@ -40,7 +40,7 @@ func (s *BasicUserService) RegisterNewBasicUser(ctx context.Context, req *model.
 			return nil, err
 		}
 	default:
-		return nil, errorx.New(errno.UnSupportAuthType)
+		return nil, errorx.New(errno.UnSupportAuthType, errorx.KV("type", req.AuthType))
 	}
 
 	var u *entity.BasicUser
@@ -89,7 +89,7 @@ func (s *BasicUserService) Login(ctx context.Context, req *model.BasicUserLoginR
 	case cst.AuthTypePhonePassword:
 		u, err = s.DomainSVC.LoginByPhone(ctx, true, req.AuthId, req.Verify)
 	default:
-		return nil, errorx.New(errno.UnSupportAuthType)
+		return nil, errorx.New(errno.UnSupportAuthType, errorx.KV("type", req.AuthType))
 	}
 	if err != nil {
 		return nil, err

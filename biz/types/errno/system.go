@@ -11,7 +11,7 @@ const (
 func init() {
 	code.Register(
 		ErrInvalidAuthType,
-		"the auth type is invalid",
+		"the auth type {type} is invalid",
 		code.WithAffectStability(false),
 	)
 	code.Register(
