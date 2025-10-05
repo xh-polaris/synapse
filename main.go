@@ -21,7 +21,7 @@ import (
 
 func main() {
 	ctx := context.Background()
-
+	Init()
 	setLogLevel()
 
 	if err := application.InitApplication(ctx); err != nil {
