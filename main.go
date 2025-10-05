@@ -3,12 +3,64 @@
 package main
 
 import (
+	"context"
+	"net/http"
+	"strings"
+
 	"github.com/cloudwego/hertz/pkg/app/server"
+	prometheus "github.com/hertz-contrib/monitor-prometheus"
+	"github.com/xh-polaris/synapse/biz/api/router"
+	"github.com/xh-polaris/synapse/biz/application"
+	"github.com/xh-polaris/synapse/biz/conf"
+	"github.com/xh-polaris/synapse/biz/pkg/logs"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/contrib/propagators/b3"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
 )
 
 func main() {
-	h := server.Default()
+	ctx := context.Background()
 
-	register(h)
+	setLogLevel()
+
+	if err := application.InitApplication(ctx); err != nil {
+		panic("InitializeInfra failed, err=" + err.Error())
+	}
+
+	h := server.New(
+		server.WithHostPorts(conf.GetConfig().ListenOn),
+		server.WithTracer(prometheus.NewServerTracer(":9091", "/server/metrics")),
+	)
+	router.GeneratedRegister(h)
 	h.Spin()
+}
+
+func Init() {
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(b3.New(), propagation.Baggage{}, propagation.TraceContext{}))
+	http.DefaultTransport = otelhttp.NewTransport(http.DefaultTransport)
+}
+
+func setLogLevel() {
+	level := strings.ToLower(conf.GetConfig().State)
+
+	logs.Infof("log level: %s", level)
+	switch level {
+	case "trace":
+		logs.SetLevel(logs.LevelTrace)
+	case "debug":
+		logs.SetLevel(logs.LevelDebug)
+	case "info":
+		logs.SetLevel(logs.LevelInfo)
+	case "notice":
+		logs.SetLevel(logs.LevelNotice)
+	case "warn":
+		logs.SetLevel(logs.LevelWarn)
+	case "error":
+		logs.SetLevel(logs.LevelError)
+	case "fatal":
+		logs.SetLevel(logs.LevelFatal)
+	default:
+		logs.SetLevel(logs.LevelInfo)
+	}
 }

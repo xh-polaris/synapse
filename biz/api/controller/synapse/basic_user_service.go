@@ -7,22 +7,26 @@ import (
 
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
-	basicuser1 "github.com/xh-polaris/synapse/biz/api/model/basicuser"
+	"github.com/xh-polaris/synapse/biz/api/model/basicuser"
+	buapp "github.com/xh-polaris/synapse/biz/application/basicuser"
 )
 
 // BasicUserRegister .
 // @router /basic_user/register [POST]
 func BasicUserRegister(ctx context.Context, c *app.RequestContext) {
 	var err error
-	var req basicuser1.BasicUserRegisterReq
+	var req basicuser.BasicUserRegisterReq
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		c.String(consts.StatusBadRequest, err.Error())
+		invalidParamRequestResponse(c, err.Error())
 		return
 	}
 
-	resp := new(basicuser1.BasicUserRegisterResp)
-
+	resp, err := buapp.BasicUserSVC.RegisterNewBasicUser(ctx, &req)
+	if err != nil {
+		internalServerErrorResponse(ctx, c, err)
+		return
+	}
 	c.JSON(consts.StatusOK, resp)
 }
 
@@ -30,14 +34,17 @@ func BasicUserRegister(ctx context.Context, c *app.RequestContext) {
 // @router /basic_user/login [POST]
 func BasicUserLogin(ctx context.Context, c *app.RequestContext) {
 	var err error
-	var req basicuser1.BasicUserLoginReq
+	var req basicuser.BasicUserLoginReq
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		c.String(consts.StatusBadRequest, err.Error())
+		invalidParamRequestResponse(c, err.Error())
 		return
 	}
 
-	resp := new(basicuser1.BasicUserLoginResp)
-
+	resp, err := buapp.BasicUserSVC.Login(ctx, &req)
+	if err != nil {
+		internalServerErrorResponse(ctx, c, err)
+		return
+	}
 	c.JSON(consts.StatusOK, resp)
 }

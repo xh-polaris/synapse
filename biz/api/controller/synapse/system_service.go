@@ -7,21 +7,44 @@ import (
 
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
-	system1 "github.com/xh-polaris/synapse/biz/api/model/system"
+	"github.com/xh-polaris/synapse/biz/api/model/system"
+	sysapp "github.com/xh-polaris/synapse/biz/application/system"
 )
 
 // SendVerifyCode .
 // @router /system/send_verify_code [POST]
 func SendVerifyCode(ctx context.Context, c *app.RequestContext) {
 	var err error
-	var req system1.SendVerifyCodeReq
+	var req system.SendVerifyCodeReq
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		c.String(consts.StatusBadRequest, err.Error())
+		invalidParamRequestResponse(c, err.Error())
 		return
 	}
 
-	resp := new(system1.SendVerifyCodeResp)
+	resp, err := sysapp.SystemSVC.Send(ctx, &req)
+	if err != nil {
+		internalServerErrorResponse(ctx, c, err)
+		return
+	}
+	c.JSON(consts.StatusOK, resp)
+}
 
+// CheckVerifyCode .
+// @router /system/check_verify_code [POST]
+func CheckVerifyCode(ctx context.Context, c *app.RequestContext) {
+	var err error
+	var req system.CheckVerifyCodeReq
+	err = c.BindAndValidate(&req)
+	if err != nil {
+		invalidParamRequestResponse(c, err.Error())
+		return
+	}
+
+	resp, err := sysapp.SystemSVC.Check(ctx, &req)
+	if err != nil {
+		internalServerErrorResponse(ctx, c, err)
+		return
+	}
 	c.JSON(consts.StatusOK, resp)
 }

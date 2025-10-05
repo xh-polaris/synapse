@@ -1,13 +1,13 @@
 package conf
 
 import (
+	"io"
 	"os"
+	"strings"
 	"sync"
 
 	confx "github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/service"
-	"github.com/zeromicro/go-zero/core/stores/cache"
-	"github.com/zeromicro/go-zero/core/stores/redis"
 )
 
 var (
@@ -19,34 +19,44 @@ type Config struct {
 	service.ServiceConf
 	ListenOn string
 	State    string
-	Auth     *Auth
-	Mongo    *Mongo
-	Cache    cache.CacheConf
-	Redis    redis.RedisConf
+	Cache    *Cache
+	SMS      *SMS
+	DB       *DB
+	App      map[string]*App
+	Token    *Token
 }
 
-type Auth struct {
-	SecretKey    string
-	PublicKey    string
-	AccessExpire int64
+type Cache struct {
+	Addr     string
+	Password string
 }
 
-type Mongo struct {
-	URL string
-	DB  string
+type DB struct {
+	DSN string
 }
 
 func NewConfig() (*Config, error) {
 	once.Do(func() {
-		c := new(Config)
-		path := os.Getenv("CONFIG_PATH")
-		if path == "" {
-			path = "etc/config.yaml"
+		paths := []string{"etc/base.yaml", "etc/app.yaml", "etc/infra.yaml"}
+		var err error
+		var data []byte
+		var yamlDocs []string
+		for _, path := range paths {
+			var f *os.File
+			if f, err = os.Open(path); err != nil {
+				panic(err)
+			}
+			if data, err = io.ReadAll(f); err != nil {
+				panic(err)
+			}
+			yamlDocs = append(yamlDocs, string(data))
 		}
-		if err := confx.Load(path, c); err != nil {
+		c, yaml := new(Config), []byte(strings.Join(yamlDocs, "\r\n"))
+		// 用 "---\n" 拼接多个 YAML 文档
+		if err = confx.LoadFromYamlBytes(yaml, c); err != nil {
 			panic(err)
 		}
-		if err := c.SetUp(); err != nil {
+		if err = c.SetUp(); err != nil {
 			panic(err)
 		}
 		config = c
@@ -55,8 +65,6 @@ func NewConfig() (*Config, error) {
 }
 
 func GetConfig() *Config {
-	once.Do(func() {
-		_, _ = NewConfig()
-	})
+	_, _ = NewConfig()
 	return config
 }

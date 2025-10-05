@@ -24,10 +24,10 @@ wire:
 	wire ./provider
 update:
 	hz --verbose update $(IDL_OPTIONS) --mod $(MODULE_NAME) $(EXTRA_OPTIONS)
-	@files=$$(find biz/application/dto -type f); \
-	for file in $$files; do \
-  	  sed -i  -e 's/func init\(\).*//' $$file; \
-  	done
+#	@files=$$(find biz/application/dto -type f); \
+#	for file in $$files; do \
+#  	  sed -i  -e 's/func init\(\).*//' $$file; \
+#  	done
 new:
 	hz new $(IDL_OPTIONS) $(OUTPUT_OPTIONS) --service $(SERVICE_NAME) --module $(MODULE_NAME) $(EXTRA_OPTIONS)
 clean:

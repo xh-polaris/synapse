@@ -151,9 +151,9 @@ func (p *App) String() string {
 }
 
 type Response struct {
-	Code  int32             `thrift:"Code,1" form:"Code" json:"Code" query:"Code"`
-	Msg   string            `thrift:"Msg,2" form:"Msg" json:"Msg" query:"Msg"`
-	Extra map[string]string `thrift:"Extra,3,optional" form:"Extra" json:"Extra" query:"Extra"`
+	Code  int32             `thrift:"code,1" form:"code" json:"code" query:"code"`
+	Msg   string            `thrift:"msg,2" form:"msg" json:"msg" query:"msg"`
+	Extra map[string]string `thrift:"extra,3,optional" form:"extra,omitempty" json:"extra,omitempty"`
 }
 
 func NewResponse() *Response {
@@ -186,9 +186,9 @@ func (p *Response) GetExtra() (v map[string]string) {
 }
 
 var fieldIDToName_Response = map[int16]string{
-	1: "Code",
-	2: "Msg",
-	3: "Extra",
+	1: "code",
+	2: "msg",
+	3: "extra",
 }
 
 func (p *Response) IsSetExtra() bool {
@@ -356,7 +356,7 @@ WriteStructEndError:
 }
 
 func (p *Response) writeField1(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("Code", thrift.I32, 1); err != nil {
+	if err = oprot.WriteFieldBegin("code", thrift.I32, 1); err != nil {
 		goto WriteFieldBeginError
 	}
 	if err := oprot.WriteI32(p.Code); err != nil {
@@ -373,7 +373,7 @@ WriteFieldEndError:
 }
 
 func (p *Response) writeField2(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("Msg", thrift.STRING, 2); err != nil {
+	if err = oprot.WriteFieldBegin("msg", thrift.STRING, 2); err != nil {
 		goto WriteFieldBeginError
 	}
 	if err := oprot.WriteString(p.Msg); err != nil {
@@ -391,7 +391,7 @@ WriteFieldEndError:
 
 func (p *Response) writeField3(oprot thrift.TProtocol) (err error) {
 	if p.IsSetExtra() {
-		if err = oprot.WriteFieldBegin("Extra", thrift.MAP, 3); err != nil {
+		if err = oprot.WriteFieldBegin("extra", thrift.MAP, 3); err != nil {
 			goto WriteFieldBeginError
 		}
 		if err := oprot.WriteMapBegin(thrift.STRING, thrift.STRING, len(p.Extra)); err != nil {

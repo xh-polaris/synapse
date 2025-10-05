@@ -743,9 +743,10 @@ func (p *BasicUserRegisterResp) String() string {
 
 // 基础用户登录
 type BasicUserLoginReq struct {
-	AuthType string `thrift:"authType,1" form:"authType" json:"authType" query:"authType"`
-	AuthId   string `thrift:"authId,2" form:"authId" json:"authId" query:"authId"`
-	Verify   string `thrift:"verify,3" form:"verify" json:"verify" query:"verify"`
+	AuthType string    `thrift:"authType,1" form:"authType" json:"authType" query:"authType"`
+	AuthId   string    `thrift:"authId,2" form:"authId" json:"authId" query:"authId"`
+	Verify   string    `thrift:"verify,3" form:"verify" json:"verify" query:"verify"`
+	App      *base.App `thrift:"app,255" form:"app" json:"app" query:"app"`
 }
 
 func NewBasicUserLoginReq() *BasicUserLoginReq {
@@ -767,10 +768,24 @@ func (p *BasicUserLoginReq) GetVerify() (v string) {
 	return p.Verify
 }
 
+var BasicUserLoginReq_App_DEFAULT *base.App
+
+func (p *BasicUserLoginReq) GetApp() (v *base.App) {
+	if !p.IsSetApp() {
+		return BasicUserLoginReq_App_DEFAULT
+	}
+	return p.App
+}
+
 var fieldIDToName_BasicUserLoginReq = map[int16]string{
-	1: "authType",
-	2: "authId",
-	3: "verify",
+	1:   "authType",
+	2:   "authId",
+	3:   "verify",
+	255: "app",
+}
+
+func (p *BasicUserLoginReq) IsSetApp() bool {
+	return p.App != nil
 }
 
 func (p *BasicUserLoginReq) Read(iprot thrift.TProtocol) (err error) {
@@ -811,6 +826,14 @@ func (p *BasicUserLoginReq) Read(iprot thrift.TProtocol) (err error) {
 		case 3:
 			if fieldTypeId == thrift.STRING {
 				if err = p.ReadField3(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 255:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField255(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
@@ -878,6 +901,14 @@ func (p *BasicUserLoginReq) ReadField3(iprot thrift.TProtocol) error {
 	p.Verify = _field
 	return nil
 }
+func (p *BasicUserLoginReq) ReadField255(iprot thrift.TProtocol) error {
+	_field := base.NewApp()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.App = _field
+	return nil
+}
 
 func (p *BasicUserLoginReq) Write(oprot thrift.TProtocol) (err error) {
 	var fieldId int16
@@ -895,6 +926,10 @@ func (p *BasicUserLoginReq) Write(oprot thrift.TProtocol) (err error) {
 		}
 		if err = p.writeField3(oprot); err != nil {
 			fieldId = 3
+			goto WriteFieldError
+		}
+		if err = p.writeField255(oprot); err != nil {
+			fieldId = 255
 			goto WriteFieldError
 		}
 	}
@@ -964,6 +999,23 @@ WriteFieldBeginError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
 WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+}
+
+func (p *BasicUserLoginReq) writeField255(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("app", thrift.STRUCT, 255); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := p.App.Write(oprot); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 255 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 255 end error: ", p), err)
 }
 
 func (p *BasicUserLoginReq) String() string {
