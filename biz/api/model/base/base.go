@@ -8,7 +8,7 @@ import (
 )
 
 type App struct {
-	Name string `thrift:"Name,1" form:"Name" json:"Name" query:"Name"`
+	Name string `thrift:"name,1" form:"name" json:"name" query:"name"`
 }
 
 func NewApp() *App {
@@ -26,7 +26,7 @@ func (p *App) GetName() (v string) {
 }
 
 var fieldIDToName_App = map[int16]string{
-	1: "Name",
+	1: "name",
 }
 
 func (p *App) Read(iprot thrift.TProtocol) (err error) {
@@ -126,7 +126,7 @@ WriteStructEndError:
 }
 
 func (p *App) writeField1(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("Name", thrift.STRING, 1); err != nil {
+	if err = oprot.WriteFieldBegin("name", thrift.STRING, 1); err != nil {
 		goto WriteFieldBeginError
 	}
 	if err := oprot.WriteString(p.Name); err != nil {
