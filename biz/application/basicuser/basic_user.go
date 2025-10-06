@@ -26,7 +26,7 @@ type BasicUserService struct {
 
 // RegisterNewBasicUser 注册一个新用户
 func (s *BasicUserService) RegisterNewBasicUser(ctx context.Context, req *model.BasicUserRegisterReq) (resp *model.BasicUserRegisterResp, err error) {
-	if err = conf.ValidApp(req.App.Name); err != nil {
+	if err = conf.ValidApp(req.GetApp().GetName()); err != nil {
 		return nil, err
 	}
 
@@ -80,7 +80,7 @@ func (s *BasicUserService) validPhoneVerify(ctx context.Context, app, phone, cod
 }
 
 func (s *BasicUserService) Login(ctx context.Context, req *model.BasicUserLoginReq) (resp *model.BasicUserLoginResp, err error) {
-	if err = conf.ValidApp(req.App.Name); err != nil {
+	if err = conf.ValidApp(req.GetApp().GetName()); err != nil {
 		return nil, err
 	}
 
@@ -126,7 +126,7 @@ func (s *BasicUserService) Login(ctx context.Context, req *model.BasicUserLoginR
 }
 
 func (s *BasicUserService) ResetPassword(ctx context.Context, req *model.BasicUserResetPasswordReq) (resp *model.BasicUserResetPasswordResp, err error) {
-	if err = conf.ValidApp(req.App.Name); err != nil {
+	if err = conf.ValidApp(req.GetApp().GetName()); err != nil {
 		return nil, err
 	}
 	info, _ := ctxcache.Get[*token.Info](ctx, cst.TokenInfo)
