@@ -10,7 +10,7 @@ import (
 
 func main() {
 	// MySQL 连接配置
-	dsn := "root:ff7sLtdixG@tcp(mysql.mysql:3306)/synapse?charset=utf8mb4&parseTime=True&loc=Asia%2FShanghai"
+	dsn := ""
 
 	// 连接数据库
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
