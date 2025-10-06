@@ -9,6 +9,7 @@ import (
 
 	"github.com/cloudwego/hertz/pkg/app/server"
 	prometheus "github.com/hertz-contrib/monitor-prometheus"
+	"github.com/xh-polaris/synapse/biz/api/middleware"
 	"github.com/xh-polaris/synapse/biz/api/router"
 	"github.com/xh-polaris/synapse/biz/application"
 	"github.com/xh-polaris/synapse/biz/conf"
@@ -32,6 +33,10 @@ func main() {
 		server.WithHostPorts(conf.GetConfig().ListenOn),
 		server.WithTracer(prometheus.NewServerTracer(":9091", "/server/metrics")),
 	)
+	h.Use(middleware.ContextCacheMW())
+	h.Use(middleware.SetLogIDMW())
+	h.Use(middleware.AccessLogMW())
+	h.Use(middleware.ExtractTokenInfoMW())
 	router.GeneratedRegister(h)
 	h.Spin()
 }

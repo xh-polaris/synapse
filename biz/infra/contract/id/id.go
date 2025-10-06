@@ -21,6 +21,11 @@ func (i ID) Hex() string {
 	return primitive.ObjectID(i).Hex()
 }
 
+func FromHex(str string) (ID, error) {
+	oid, err := primitive.ObjectIDFromHex(str)
+	return ID(oid), err
+}
+
 // Value 实现 driver.Valuer 接口，用于将 ID 转换为数据库可存储的值
 func (i ID) Value() (driver.Value, error) {
 	// 将 ObjectID 转换为 12 字节的二进制数据

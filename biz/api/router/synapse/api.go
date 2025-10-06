@@ -21,6 +21,7 @@ func Register(r *server.Hertz) {
 		_basic_user := root.Group("/basic_user", _basic_userMw()...)
 		_basic_user.POST("/login", append(_basicuserloginMw(), synapse.BasicUserLogin)...)
 		_basic_user.POST("/register", append(_basicuserregisterMw(), synapse.BasicUserRegister)...)
+		_basic_user.POST("/reset_password", append(_basicuserresetpasswordMw(), synapse.BasicUserResetPassword)...)
 	}
 	{
 		_system := root.Group("/system", _systemMw()...)

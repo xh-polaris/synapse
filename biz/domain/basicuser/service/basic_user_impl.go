@@ -34,11 +34,11 @@ func (i *userImpl) LoginByPhone(ctx context.Context, requirePassword bool, phone
 	if err != nil {
 		return nil, err
 	}
-	if u == nil {
-		return nil, errorx.New(errno.PhoneNotExisted, errorx.KV("phone", phone))
+	if u == nil { // 未注册过
+		return nil, errorx.New(errno.PhoneNotExisted)
 	}
 	if requirePassword {
-		if u.Password == nil {
+		if u.Password == nil || *u.Password == "" {
 			return nil, errorx.New(errno.NoPassword)
 		}
 		if !crypt.Check(verify, *u.Password) {
@@ -48,21 +48,24 @@ func (i *userImpl) LoginByPhone(ctx context.Context, requirePassword bool, phone
 	return basicUserModel2Entity(u)
 }
 
-func (i *userImpl) PhoneNotExist(ctx context.Context, phone string) (err error) {
+func (i *userImpl) PhoneExist(ctx context.Context, phone string) (is bool, err error) {
 	mu, err := i.BasicUserRepo.FindByPhone(ctx, phone)
 	if err != nil {
-		return err
+		return false, err
 	}
 	if mu != nil {
-		return errorx.New(errno.PhoneHasExisted, errorx.KV("phone", phone))
+		return true, nil
 	}
-	return nil
+	return false, nil
 }
 
-func (i *userImpl) Register(ctx context.Context, authType, authID, password string) (*entity.BasicUser, error) {
-	hashed, err := crypt.Hash(password)
-	if err != nil {
-		return nil, err
+func (i *userImpl) Register(ctx context.Context, authType, authID, password string) (u *entity.BasicUser, err error) {
+	var hashed string
+	if password != "" {
+		hashed, err = crypt.Hash(password)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	nu := &model.BasicUser{
@@ -73,12 +76,25 @@ func (i *userImpl) Register(ctx context.Context, authType, authID, password stri
 	switch authType {
 	case cst.AuthTypePhoneVerify:
 		nu.Phone = &authID
+	default:
+		return nil, errorx.New(errno.UnSupportAuthType, errorx.KV("type", authType))
 	}
 	nu, err = i.BasicUserRepo.Create(ctx, nu)
 	if err != nil {
 		return nil, errorx.New(errno.ErrRegister)
 	}
 	return basicUserModel2Entity(nu)
+}
+
+func (i *userImpl) ResetPassword(ctx context.Context, basicUserId string, password string) error {
+	if password == "" {
+		return errorx.New(errno.MustPassword)
+	}
+	hashed, err := crypt.Hash(password)
+	if err != nil {
+		return err
+	}
+	return i.BasicUserRepo.ResetPassword(ctx, basicUserId, hashed)
 }
 
 func basicUserModel2Entity(u *model.BasicUser) (*entity.BasicUser, error) {

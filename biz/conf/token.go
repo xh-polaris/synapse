@@ -20,3 +20,12 @@ func GetSecretKey(sk string) (*rsa.PrivateKey, error) {
 	}
 	return privateKey.(*rsa.PrivateKey), nil
 }
+
+func GetPublicKey(pk string) (*rsa.PublicKey, error) {
+	b, _ := pem.Decode([]byte(pk))
+	pubKey, err := x509.ParsePKIXPublicKey(b.Bytes)
+	if err != nil {
+		return nil, err
+	}
+	return pubKey.(*rsa.PublicKey), nil
+}

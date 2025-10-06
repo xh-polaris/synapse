@@ -19,6 +19,7 @@ func NewAuthAuthRepo(db *orm.DB) AuthRepo {
 type BasicUserRepo interface {
 	FindByPhone(ctx context.Context, phone string) (*model.BasicUser, error)
 	Create(ctx context.Context, nu *model.BasicUser) (*model.BasicUser, error)
+	ResetPassword(ctx context.Context, basicUserId, password string) error
 }
 
 type AuthRepo interface {

@@ -6,6 +6,7 @@ import (
 
 	"github.com/xh-polaris/synapse/biz/domain/basicuser/dal/model"
 	"github.com/xh-polaris/synapse/biz/domain/basicuser/dal/query"
+	"github.com/xh-polaris/synapse/biz/infra/contract/id"
 	"github.com/xh-polaris/synapse/biz/infra/contract/orm"
 	"gorm.io/gorm"
 )
@@ -32,4 +33,14 @@ func (d *BasicUserDAO) FindByPhone(ctx context.Context, phone string) (*model.Ba
 func (d *BasicUserDAO) Create(ctx context.Context, nu *model.BasicUser) (*model.BasicUser, error) {
 	err := d.query.WithContext(ctx).BasicUser.Create(nu)
 	return nu, err
+}
+
+func (d *BasicUserDAO) ResetPassword(ctx context.Context, basicUserId, password string) error {
+	buid, err := id.FromHex(basicUserId)
+	if err != nil {
+		return err
+	}
+	_, err = d.query.WithContext(ctx).BasicUser.Where(d.query.BasicUser.ID.Eq(buid)).
+		Update(d.query.BasicUser.Password, password)
+	return err
 }

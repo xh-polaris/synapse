@@ -11,6 +11,7 @@ import (
 	"github.com/xh-polaris/synapse/biz/domain/basicuser/entity"
 	basicuser "github.com/xh-polaris/synapse/biz/domain/basicuser/service"
 	"github.com/xh-polaris/synapse/biz/infra/contract/sms"
+	ctxcache "github.com/xh-polaris/synapse/biz/pkg/ctxcache/ctx_cache"
 	"github.com/xh-polaris/synapse/biz/pkg/errorx"
 	"github.com/xh-polaris/synapse/biz/types/cst"
 	"github.com/xh-polaris/synapse/biz/types/errno"
@@ -31,18 +32,23 @@ func (s *BasicUserService) RegisterNewBasicUser(ctx context.Context, req *model.
 
 	switch req.AuthType {
 	case cst.AuthTypePhoneVerify:
-		err = s.validPhoneVerify(ctx, req.App.Name, req.AuthId, req.Verify)
+		if err = s.validPhoneVerify(ctx, req.App.Name, req.AuthId, req.Verify); err != nil {
+			return nil, err
+		}
+		ok, err := s.DomainSVC.PhoneExist(ctx, req.AuthId)
 		if err != nil {
 			return nil, err
 		}
-		err = s.DomainSVC.PhoneNotExist(ctx, req.AuthId)
-		if err != nil {
-			return nil, err
+		if ok {
+			return nil, errorx.New(errno.PhoneHasExisted, errorx.KV("phone", req.AuthId))
 		}
 	default:
 		return nil, errorx.New(errno.UnSupportAuthType, errorx.KV("type", req.AuthType))
 	}
 
+	if req.GetPassword() == "" {
+		return nil, errorx.New(errno.MustPassword)
+	}
 	var u *entity.BasicUser
 	if u, err = s.DomainSVC.Register(ctx, req.AuthType, req.AuthId, *req.Password); err != nil {
 		return nil, err
@@ -78,6 +84,7 @@ func (s *BasicUserService) Login(ctx context.Context, req *model.BasicUserLoginR
 		return nil, err
 	}
 
+	var ok bool
 	var u *entity.BasicUser
 	switch req.AuthType {
 	case cst.AuthTypePhoneVerify:
@@ -85,7 +92,15 @@ func (s *BasicUserService) Login(ctx context.Context, req *model.BasicUserLoginR
 		if err != nil {
 			return nil, err
 		}
-		u, err = s.DomainSVC.LoginByPhone(ctx, false, req.AuthId, "")
+		ok, err = s.DomainSVC.PhoneExist(ctx, req.AuthId)
+		if err != nil {
+			return nil, err
+		}
+		if ok {
+			u, err = s.DomainSVC.LoginByPhone(ctx, false, req.AuthId, req.Verify)
+		} else {
+			u, err = s.DomainSVC.Register(ctx, req.AuthType, req.AuthId, "")
+		}
 	case cst.AuthTypePhonePassword:
 		u, err = s.DomainSVC.LoginByPhone(ctx, true, req.AuthId, req.Verify)
 	default:
@@ -105,6 +120,22 @@ func (s *BasicUserService) Login(ctx context.Context, req *model.BasicUserLoginR
 		Resp:      application.Success(),
 		Token:     jwt,
 		BasicUser: internal.BasicUserPO2VO(u),
+		New:       !ok,
 	}
 	return
+}
+
+func (s *BasicUserService) ResetPassword(ctx context.Context, req *model.BasicUserResetPasswordReq) (resp *model.BasicUserResetPasswordResp, err error) {
+	if err = conf.ValidApp(req.App.Name); err != nil {
+		return nil, err
+	}
+	info, _ := ctxcache.Get[*token.Info](ctx, cst.TokenInfo)
+
+	if err = s.DomainSVC.ResetPassword(ctx, info.BasicUserId, req.NewPassword); err != nil {
+		return nil, errorx.New(errno.ErrResetPassword)
+	}
+
+	return &model.BasicUserResetPasswordResp{
+		Resp: application.Success(),
+	}, nil
 }

@@ -12,6 +12,7 @@ const (
 	ErrRegister       = 200_000_005
 	NoPassword        = 200_000_006
 	ErrPassword       = 200_000_007
+	ErrResetPassword  = 200_000_008
 )
 
 func init() {
@@ -37,7 +38,7 @@ func init() {
 	)
 	code.Register(
 		PhoneNotExisted,
-		"phone {phone} not exists",
+		"phone not exists",
 		code.WithAffectStability(false),
 	)
 	code.Register(
@@ -53,6 +54,11 @@ func init() {
 	code.Register(
 		ErrPassword,
 		"error password",
+		code.WithAffectStability(false),
+	)
+	code.Register(
+		ErrResetPassword,
+		"set password failed",
 		code.WithAffectStability(false),
 	)
 }

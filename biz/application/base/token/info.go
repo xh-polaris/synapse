@@ -40,7 +40,7 @@ func ParseJWT(tokenConf *conf.Token, str string) (*Info, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return tokenConf.PublicKey, nil
+		return conf.GetPublicKey(tokenConf.PublicKey)
 	})
 	if err != nil {
 		return nil, err
