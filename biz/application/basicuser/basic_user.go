@@ -84,7 +84,7 @@ func (s *BasicUserService) Login(ctx context.Context, req *model.BasicUserLoginR
 		return nil, err
 	}
 
-	var ok bool
+	var ok = true
 	var u *entity.BasicUser
 	switch req.AuthType {
 	case cst.AuthTypePhoneVerify:
