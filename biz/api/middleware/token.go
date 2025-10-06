@@ -17,7 +17,7 @@ func ExtractTokenInfoMW() app.HandlerFunc {
 		if str != "" {
 			info, err := token.ParseJWT(conf.GetConfig().Token, str)
 			if err != nil {
-				ctx.String(http.StatusUnauthorized, err.Error())
+				ctx.AbortWithMsg(err.Error(), http.StatusUnauthorized)
 				return
 			}
 			ctxcache.Store(c, cst.TokenInfo, info)
