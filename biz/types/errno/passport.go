@@ -4,15 +4,17 @@ import "github.com/xh-polaris/synapse/biz/pkg/errorx/code"
 
 // System 200 000 000	~ 100 999 999
 const (
-	UnSupportAuthType = 200_000_000
-	MustPassword      = 200_000_001
-	ErrVerifyCode     = 200_000_002
-	PhoneHasExisted   = 200_000_003
-	PhoneNotExisted   = 200_000_004
-	ErrRegister       = 200_000_005
-	NoPassword        = 200_000_006
-	ErrPassword       = 200_000_007
-	ErrResetPassword  = 200_000_008
+	UnSupportAuthType   = 200_000_000
+	MustPassword        = 200_000_001
+	ErrVerifyCode       = 200_000_002
+	PhoneHasExisted     = 200_000_003
+	PhoneNotExisted     = 200_000_004
+	ErrRegister         = 200_000_005
+	NoPassword          = 200_000_006
+	ErrPassword         = 200_000_007
+	ErrResetPassword    = 200_000_008
+	UnSupportThirdParty = 200_000_009
+	ErrThirdPartyLogin  = 200_000_0010
 )
 
 func init() {
@@ -61,4 +63,10 @@ func init() {
 		"set password failed",
 		code.WithAffectStability(false),
 	)
+	code.Register(UnSupportThirdParty,
+		"unsupported third party",
+		code.WithAffectStability(false))
+	code.Register(ErrThirdPartyLogin,
+		"third party login failed",
+		code.WithAffectStability(false))
 }

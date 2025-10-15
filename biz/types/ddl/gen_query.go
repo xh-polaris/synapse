@@ -1,14 +1,16 @@
 package main
 
 import (
-	"github.com/xh-polaris/synapse/biz/domain/basicuser/dal/model"
+	basicuser "github.com/xh-polaris/synapse/biz/domain/basicuser/dal/model"
+	thirdparty "github.com/xh-polaris/synapse/biz/domain/thirdparty/dal/model"
 	"gorm.io/driver/mysql"
 	"gorm.io/gen"
 	"gorm.io/gorm"
 )
 
 var path2Model = map[string][]any{
-	"/basicuser/dal/query": {&model.Auth{}, &model.BasicUser{}},
+	"/basicuser/dal/query":  {&basicuser.Auth{}, &basicuser.BasicUser{}},
+	"/thirdparty/dal/query": {&thirdparty.ThirdPartyUser{}},
 }
 
 var root = "../../domain" // domain

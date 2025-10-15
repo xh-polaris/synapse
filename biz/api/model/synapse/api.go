@@ -60,6 +60,32 @@ func NewBasicUserServiceClient(c thrift.TClient) *BasicUserServiceClient {
 	}
 }
 
+type ThirdPartyService interface {
+	basicuser.ThirdPartyService
+}
+
+type ThirdPartyServiceClient struct {
+	*basicuser.ThirdPartyServiceClient
+}
+
+func NewThirdPartyServiceClientFactory(t thrift.TTransport, f thrift.TProtocolFactory) *ThirdPartyServiceClient {
+	return &ThirdPartyServiceClient{
+		ThirdPartyServiceClient: basicuser.NewThirdPartyServiceClientFactory(t, f),
+	}
+}
+
+func NewThirdPartyServiceClientProtocol(t thrift.TTransport, iprot thrift.TProtocol, oprot thrift.TProtocol) *ThirdPartyServiceClient {
+	return &ThirdPartyServiceClient{
+		ThirdPartyServiceClient: basicuser.NewThirdPartyServiceClientProtocol(t, iprot, oprot),
+	}
+}
+
+func NewThirdPartyServiceClient(c thrift.TClient) *ThirdPartyServiceClient {
+	return &ThirdPartyServiceClient{
+		ThirdPartyServiceClient: basicuser.NewThirdPartyServiceClient(c),
+	}
+}
+
 type SystemServiceProcessor struct {
 	*system.SystemServiceProcessor
 }
@@ -75,5 +101,14 @@ type BasicUserServiceProcessor struct {
 
 func NewBasicUserServiceProcessor(handler BasicUserService) *BasicUserServiceProcessor {
 	self := &BasicUserServiceProcessor{basicuser.NewBasicUserServiceProcessor(handler)}
+	return self
+}
+
+type ThirdPartyServiceProcessor struct {
+	*basicuser.ThirdPartyServiceProcessor
+}
+
+func NewThirdPartyServiceProcessor(handler ThirdPartyService) *ThirdPartyServiceProcessor {
+	self := &ThirdPartyServiceProcessor{basicuser.NewThirdPartyServiceProcessor(handler)}
 	return self
 }

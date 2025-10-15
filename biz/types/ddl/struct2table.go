@@ -1,7 +1,8 @@
 package main
 
 import (
-	"github.com/xh-polaris/synapse/biz/domain/basicuser/dal/model"
+	basicuser "github.com/xh-polaris/synapse/biz/domain/basicuser/dal/model"
+	thirdparty "github.com/xh-polaris/synapse/biz/domain/thirdparty/dal/model"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -10,7 +11,7 @@ import (
 
 func main() {
 	// MySQL 连接配置
-	dsn := ""
+	dsn := "root:123456@tcp(127.0.0.1:3306)/test?charset=utf8mb4&parseTime=True&loc=UTC"
 
 	// 连接数据库
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
@@ -19,7 +20,7 @@ func main() {
 	}
 
 	// 自动迁移表结构
-	err = db.AutoMigrate(&model.Auth{}, &model.BasicUser{})
+	err = db.AutoMigrate(&basicuser.Auth{}, &basicuser.BasicUser{}, &thirdparty.ThirdPartyUser{})
 	if err != nil {
 		panic("failed to migrate database: " + err.Error())
 	}

@@ -28,4 +28,8 @@ func Register(r *server.Hertz) {
 		_system.POST("/check_verify_code", append(_checkverifycodeMw(), synapse.CheckVerifyCode)...)
 		_system.POST("/send_verify_code", append(_sendverifycodeMw(), synapse.SendVerifyCode)...)
 	}
+	{
+		_thirdparty := root.Group("/thirdparty", _thirdpartyMw()...)
+		_thirdparty.POST("/login", append(_thirdpartyloginMw(), synapse.ThirdPartyLogin)...)
+	}
 }
