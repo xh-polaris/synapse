@@ -122,6 +122,10 @@ func (r *redisImpl) Set(ctx context.Context, key string, value interface{}, expi
 	return r.client.Set(ctx, key, value, expiration)
 }
 
+func (r *redisImpl) Eval(ctx context.Context, script string, keys []string, args ...interface{}) cache.Cmd {
+	return r.client.Eval(ctx, script, keys, args...)
+}
+
 type pipelineImpl struct {
 	p redis.Pipeliner
 }
@@ -229,4 +233,8 @@ func (p *pipelineImpl) RPush(ctx context.Context, key string, values ...interfac
 // Set implements cache.Pipeliner.
 func (p *pipelineImpl) Set(ctx context.Context, key string, value interface{}, expiration time.Duration) cache.StatusCmd {
 	return p.p.Set(ctx, key, value, expiration)
+}
+
+func (p *pipelineImpl) Eval(ctx context.Context, script string, keys []string, args ...interface{}) cache.Cmd {
+	return p.p.Eval(ctx, script, keys, args...)
 }

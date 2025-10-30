@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/redis/go-redis/v9"
 	"github.com/xh-polaris/synapse/biz/conf"
+	"github.com/xh-polaris/synapse/biz/infra/contract/cache"
 	"github.com/xh-polaris/synapse/biz/infra/contract/sms"
 	"github.com/xh-polaris/synapse/biz/pkg/httpcli"
 )
@@ -73,7 +73,7 @@ func (b *bluecloudSMS) Check(ctx context.Context, app, cause, phone, code string
 		return true, nil
 	}
 	ori, err := b.cache.Load(ctx, app, cause, phone)
-	if errors.Is(err, redis.Nil) {
+	if errors.Is(err, cache.Nil) {
 		return false, nil
 	}
 	return ori == code, err

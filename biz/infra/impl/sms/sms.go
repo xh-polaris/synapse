@@ -14,13 +14,17 @@ const (
 	BlueCloud = "blue-cloud"
 )
 
-func New(ctx context.Context, cacheCli cache.Cmdable) (sms.Provider, error) {
+func New(ctx context.Context, cacheCli cache.Cmdable) (provider sms.Provider, err error) {
 	c := conf.GetConfig().SMS
 	ch := sms.NewSMSCache(ctx, cacheCli)
-
 	switch c.Provider {
 	case BlueCloud:
-		return bluecloud.New(ctx, ch, c.Account, c.Token)
+		provider, err = bluecloud.New(ctx, ch, c.Account, c.Token)
+	default:
+		return nil, fmt.Errorf("no such SMS provider: %s", c.Provider)
 	}
-	return nil, fmt.Errorf("no such SMS provider: %s", c.Provider)
+	if err != nil {
+		return nil, err
+	}
+	return NewSafeSMSProvider(provider, cacheCli)
 }

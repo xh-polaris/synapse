@@ -6,6 +6,7 @@ import "github.com/xh-polaris/synapse/biz/pkg/errorx/code"
 const (
 	ErrInvalidAuthType = 100_000_000
 	ErrSendPhoneVerify = 100_000_001
+	ErrSendUpperLimit  = 100_000_002
 )
 
 func init() {
@@ -19,4 +20,7 @@ func init() {
 		"send phone verify code failed",
 		code.WithAffectStability(false),
 	)
+	code.Register(
+		ErrSendUpperLimit,
+		"send too often, please wait for {period} minutes")
 }

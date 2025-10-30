@@ -10,7 +10,6 @@ import (
 	"github.com/xh-polaris/synapse/biz/application/internal"
 	"github.com/xh-polaris/synapse/biz/infra/contract/sms"
 	"github.com/xh-polaris/synapse/biz/pkg/errorx"
-	"github.com/xh-polaris/synapse/biz/pkg/logs"
 	"github.com/xh-polaris/synapse/biz/types/cst"
 	"github.com/xh-polaris/synapse/biz/types/errno"
 )
@@ -28,8 +27,7 @@ func (s *SystemService) Send(ctx context.Context, req *system.SendVerifyCodeReq)
 
 	param := &sms.SMSParam{Code: genCode(), Expire: time.Duration(req.Expire) * time.Second}
 	if err := s.sms.Send(ctx, req.App.Name, req.Cause, req.AuthId, param); err != nil {
-		logs.Error(err)
-		return nil, errorx.New(errno.ErrSendPhoneVerify)
+		return nil, errorx.WrapByCode(err, errno.ErrSendPhoneVerify)
 	}
 	return &system.SendVerifyCodeResp{Resp: internal.Success()}, nil
 }

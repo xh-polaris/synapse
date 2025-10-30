@@ -17,6 +17,14 @@ type Cmdable interface {
 	HashCmdable
 	GenericCmdable
 	ListCmdable
+	ScriptingCmdable
+}
+
+type ScriptingCmdable interface {
+	Eval(ctx context.Context, script string, keys []string, args ...interface{}) Cmd
+	//EvalSha(ctx context.Context, sha1 string, keys []string, args ...interface{}) Cmd
+	//ScriptExists(ctx context.Context, hashes ...string) BoolSliceCmd
+	//ScriptLoad(ctx context.Context, script string) StringCmd
 }
 
 type StringCmdable interface {
@@ -62,6 +70,16 @@ type baseCmd interface {
 	Err() error
 }
 
+type Cmd interface {
+	baseCmd
+	Result() (interface{}, error)
+	Val() interface{}
+	Int64() (int64, error)
+	String() string
+	Bool() (bool, error)
+	Slice() ([]interface{}, error)
+}
+
 type IntCmd interface {
 	baseCmd
 	Result() (int64, error)
@@ -75,6 +93,11 @@ type MapStringStringCmd interface {
 type BoolCmd interface {
 	baseCmd
 	Result() (bool, error)
+}
+
+type BoolSliceCmd interface {
+	baseCmd
+	Result() ([]bool, error)
 }
 
 type StatusCmd interface {
