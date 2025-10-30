@@ -15,6 +15,7 @@ const (
 	ErrResetPassword    = 200_000_008
 	UnSupportThirdParty = 200_000_009
 	ErrThirdPartyLogin  = 200_000_0010
+	TooOftenLoginError  = 200_000_0011
 )
 
 func init() {
@@ -65,8 +66,14 @@ func init() {
 	)
 	code.Register(UnSupportThirdParty,
 		"unsupported third party",
-		code.WithAffectStability(false))
+		code.WithAffectStability(false),
+	)
 	code.Register(ErrThirdPartyLogin,
 		"third party login failed",
-		code.WithAffectStability(false))
+		code.WithAffectStability(false),
+	)
+	code.Register(TooOftenLoginError,
+		"登录失败次数过多, 请 {period} 分钟后再试",
+		code.WithAffectStability(false),
+	)
 }

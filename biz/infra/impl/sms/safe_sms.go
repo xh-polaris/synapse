@@ -29,7 +29,7 @@ func NewSafeSMSProvider(provider sms.Provider, cacheCli cache.Cmdable) (*SafeSMS
 // Send 发送验证码
 func (s *SafeSMSProvider) Send(ctx context.Context, app, cause, phone string, param *sms.SMSParam) error {
 	// 判断是否到上限
-	key := fmt.Sprintf("risk:sendVerifyCode:%s:%s:%S" + app + cause + phone)
+	key := fmt.Sprintf("risk:sendVerifyCode:%s:%s:%s", app, cause, phone)
 	limit, _, err := risk.CheckUpperLimit(ctx, key, conf.GetConfig().SMS.MaxInPeriod)
 	if err != nil {
 		return err

@@ -7,9 +7,11 @@ import (
 )
 
 type Token struct {
-	PublicKey string
-	SecretKey string
-	Expire    int64
+	PublicKey   string
+	SecretKey   string
+	Expire      int64
+	Period      int // 重试周期
+	MaxInPeriod int // 重试周期内最多登录失败次数
 }
 
 func GetSecretKey(sk string) (*rsa.PrivateKey, error) {

@@ -2,6 +2,8 @@ package basicuser
 
 import (
 	"context"
+	"fmt"
+	"strconv"
 
 	model "github.com/xh-polaris/synapse/biz/api/model/basicuser"
 	"github.com/xh-polaris/synapse/biz/application/base/token"
@@ -10,9 +12,11 @@ import (
 	"github.com/xh-polaris/synapse/biz/conf"
 	"github.com/xh-polaris/synapse/biz/domain/basicuser/entity"
 	basicuser "github.com/xh-polaris/synapse/biz/domain/basicuser/service"
+	"github.com/xh-polaris/synapse/biz/infra/contract/risk"
 	"github.com/xh-polaris/synapse/biz/infra/contract/sms"
 	ctxcache "github.com/xh-polaris/synapse/biz/pkg/ctxcache/ctx_cache"
 	"github.com/xh-polaris/synapse/biz/pkg/errorx"
+	"github.com/xh-polaris/synapse/biz/pkg/logs"
 	"github.com/xh-polaris/synapse/biz/types/cst"
 	"github.com/xh-polaris/synapse/biz/types/errno"
 )
@@ -69,11 +73,23 @@ func (s *BasicUserService) RegisterNewBasicUser(ctx context.Context, req *model.
 }
 
 func (s *BasicUserService) validPhoneVerify(ctx context.Context, app, phone, code string) error {
+	// 判断是否到上限
+	key := fmt.Sprintf("risk:login:passport:%s", phone)
+	limit, _, err := risk.CheckUpperLimit(ctx, key, conf.GetConfig().Token.MaxInPeriod)
+	if err != nil {
+		return err
+	}
+	if limit { // 达到上限, 不允许校验
+		return errorx.New(errno.TooOftenLoginError, errorx.KV("period", strconv.Itoa(conf.GetConfig().SMS.Period/60)))
+	}
 	ok, err := s.sms.Check(ctx, app, "passport", phone, code)
 	if err != nil {
 		return err
 	}
 	if !ok {
+		if err = risk.AddOnce(ctx, key, conf.GetConfig().Token.Period); err != nil {
+			logs.Errorf("record send verify err:%s", err)
+		}
 		return errorx.New(errno.ErrVerifyCode)
 	}
 	return err

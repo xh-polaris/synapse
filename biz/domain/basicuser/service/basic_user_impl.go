@@ -2,15 +2,20 @@ package service
 
 import (
 	"context"
+	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/bytedance/sonic"
+	"github.com/xh-polaris/synapse/biz/conf"
 	"github.com/xh-polaris/synapse/biz/domain/basicuser/dal/model"
 	"github.com/xh-polaris/synapse/biz/domain/basicuser/entity"
 	"github.com/xh-polaris/synapse/biz/domain/basicuser/repo"
 	"github.com/xh-polaris/synapse/biz/infra/contract/id"
+	"github.com/xh-polaris/synapse/biz/infra/contract/risk"
 	"github.com/xh-polaris/synapse/biz/pkg/errorx"
 	"github.com/xh-polaris/synapse/biz/pkg/lang/crypt"
+	"github.com/xh-polaris/synapse/biz/pkg/logs"
 	"github.com/xh-polaris/synapse/biz/types/cst"
 	"github.com/xh-polaris/synapse/biz/types/errno"
 )
@@ -38,10 +43,21 @@ func (i *userImpl) LoginByPhone(ctx context.Context, requirePassword bool, phone
 		return nil, errorx.New(errno.PhoneNotExisted)
 	}
 	if requirePassword {
+		key := fmt.Sprintf("risk:login:passport:%s", phone)
+		limit, _, err := risk.CheckUpperLimit(ctx, key, conf.GetConfig().Token.MaxInPeriod)
+		if err != nil {
+			return nil, err
+		}
+		if limit { // 达到上限, 不允许校验
+			return nil, errorx.New(errno.TooOftenLoginError, errorx.KV("period", strconv.Itoa(conf.GetConfig().SMS.Period/60)))
+		}
 		if u.Password == nil || *u.Password == "" {
 			return nil, errorx.New(errno.NoPassword)
 		}
 		if !crypt.Check(verify, *u.Password) {
+			if err = risk.AddOnce(ctx, key, conf.GetConfig().Token.Period); err != nil {
+				logs.Errorf("record send verify err:%s", err)
+			}
 			return nil, errorx.New(errno.ErrPassword)
 		}
 	}
