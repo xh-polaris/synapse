@@ -6,7 +6,8 @@ import (
 )
 
 type App struct {
-	Status int
+	Status    int
+	ResetCode string
 }
 
 // ValidApp check whether the app valid
@@ -18,4 +19,9 @@ func ValidApp(app string) error {
 		return nil
 	}
 	return errorx.New(errno.UnSupportApp, errorx.KV("name", app))
+}
+
+// VerifyResetCode 检查Code是否正确以重置密码
+func VerifyResetCode(code string) bool {
+	return code == GetConfig().ResetCode
 }

@@ -30,6 +30,29 @@ func (d *BasicUserDAO) FindByPhone(ctx context.Context, phone string) (*model.Ba
 	return user, err
 }
 
+func (d *BasicUserDAO) FindManyBySchoolID(ctx context.Context, schoolId string) ([]*model.BasicUser, error) {
+	sid, err := id.FromHex(schoolId)
+	if err != nil {
+		return nil, err
+	}
+	return d.query.WithContext(ctx).BasicUser.Where(d.query.BasicUser.SchoolID.Eq(sid)).Find()
+}
+
+func (d *BasicUserDAO) FindByStudentID(ctx context.Context, schoolId, studentId string) (*model.BasicUser, error) {
+	sid, err := id.FromHex(schoolId)
+	if err != nil {
+		return nil, err
+	}
+	user, err := d.query.WithContext(ctx).BasicUser.Where(d.query.BasicUser.SchoolID.Eq(sid), d.query.BasicUser.StudentID.Eq(studentId)).First()
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return user, err
+}
+
 func (d *BasicUserDAO) Create(ctx context.Context, nu *model.BasicUser) (*model.BasicUser, error) {
 	err := d.query.WithContext(ctx).BasicUser.Create(nu)
 	return nu, err

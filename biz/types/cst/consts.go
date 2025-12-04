@@ -4,6 +4,7 @@ package cst
 const (
 	AuthTypePhoneVerify   = "phone-verify"
 	AuthTypePhonePassword = "phone-password"
+	AuthTypeIdPassword    = "id-password"
 	AuthTypeEmail         = "email"
 )
 

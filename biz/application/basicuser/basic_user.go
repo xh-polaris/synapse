@@ -46,6 +46,14 @@ func (s *BasicUserService) RegisterNewBasicUser(ctx context.Context, req *model.
 		if ok {
 			return nil, errorx.New(errno.PhoneHasExisted, errorx.KV("phone", req.AuthId))
 		}
+	case cst.AuthTypeIdPassword:
+		ok, err := s.DomainSVC.StudentIDExist(ctx, req.AuthId, *req.ExtraAuthId)
+		if err != nil {
+			return nil, err
+		}
+		if ok {
+			return nil, errorx.New(errno.StudentIDHasExisted, errorx.KV("studentId", req.AuthId))
+		}
 	default:
 		return nil, errorx.New(errno.UnSupportAuthType, errorx.KV("type", req.AuthType))
 	}
@@ -119,6 +127,8 @@ func (s *BasicUserService) Login(ctx context.Context, req *model.BasicUserLoginR
 		}
 	case cst.AuthTypePhonePassword:
 		u, err = s.DomainSVC.LoginByPhone(ctx, true, req.AuthId, req.Verify)
+	case cst.AuthTypeIdPassword:
+		u, err = s.DomainSVC.LoginByStudentID(ctx, req.AuthId, *req.ExtraAuthId, req.Verify)
 	default:
 		return nil, errorx.New(errno.UnSupportAuthType, errorx.KV("type", req.AuthType))
 	}
@@ -147,8 +157,15 @@ func (s *BasicUserService) ResetPassword(ctx context.Context, req *model.BasicUs
 	}
 	info, _ := ctxcache.Get[*token.Info](ctx, cst.TokenInfo)
 
-	if err = s.DomainSVC.ResetPassword(ctx, info.BasicUserId, req.NewPassword); err != nil {
-		return nil, errorx.New(errno.ErrResetPassword)
+	switch req.ResetCode {
+	case "":
+		if err = s.DomainSVC.ResetPassword(ctx, info.BasicUserId, req.NewPassword); err != nil {
+			return nil, errorx.New(errno.ErrResetPassword)
+		}
+	default:
+		if err = s.DomainSVC.ResetPasswordByCode(ctx, info.BasicUserId, req.ResetCode, req.NewPassword); err != nil {
+			return nil, errorx.New(errno.ErrResetPassword)
+		}
 	}
 
 	return &model.BasicUserResetPasswordResp{

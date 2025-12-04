@@ -17,13 +17,14 @@ var (
 
 type Config struct {
 	service.ServiceConf
-	ListenOn string
-	State    string
-	Cache    *Cache
-	SMS      *SMS
-	DB       *DB
-	App      map[string]*App
-	Token    *Token
+	ListenOn  string
+	State     string
+	Cache     *Cache
+	SMS       *SMS
+	DB        *DB
+	App       map[string]*App
+	Token     *Token
+	ResetCode string
 }
 
 type Cache struct {

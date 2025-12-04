@@ -16,6 +16,8 @@ const (
 	UnSupportThirdParty = 200_000_009
 	ErrThirdPartyLogin  = 200_000_0010
 	TooOftenLoginError  = 200_000_0011
+	StudentIDHasExisted = 200_000_0012
+	StudentIDNotExisted = 200_000_0013
 )
 
 func init() {

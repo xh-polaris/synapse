@@ -11,6 +11,8 @@ const (
 
 type BasicUser struct {
 	ID        string
+	SchoolID  *string
+	StudentID *string
 	Code      *string
 	Phone     *string
 	Password  *string
@@ -24,4 +26,12 @@ type BasicUser struct {
 type Auth struct {
 	AuthType string
 	AuthId   string
+}
+
+type School struct {
+	ID        string
+	Name      string
+	Extra     *map[string]any
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }

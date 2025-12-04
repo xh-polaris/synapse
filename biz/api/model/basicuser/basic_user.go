@@ -157,10 +157,12 @@ type BasicUserRegisterReq struct {
 	AuthType string `thrift:"authType,1" form:"authType" json:"authType" query:"authType"`
 	// 认证id
 	AuthId string `thrift:"authId,2" form:"authId" json:"authId" query:"authId"`
+	// 扩展认证id
+	ExtraAuthId *string `thrift:"extraAuthId,3,optional" form:"extraAuthId" json:"extraAuthId" query:"extraAuthId"`
 	// 认证凭证
-	Verify string `thrift:"verify,3" form:"verify" json:"verify" query:"verify"`
+	Verify string `thrift:"verify,4" form:"verify" json:"verify" query:"verify"`
 	// 是否初始化密码
-	Password *string   `thrift:"password,4,optional" form:"password" json:"password" query:"password"`
+	Password *string   `thrift:"password,5,optional" form:"password" json:"password" query:"password"`
 	App      *base.App `thrift:"app,255" form:"app" json:"app" query:"app"`
 }
 
@@ -177,6 +179,15 @@ func (p *BasicUserRegisterReq) GetAuthType() (v string) {
 
 func (p *BasicUserRegisterReq) GetAuthId() (v string) {
 	return p.AuthId
+}
+
+var BasicUserRegisterReq_ExtraAuthId_DEFAULT string
+
+func (p *BasicUserRegisterReq) GetExtraAuthId() (v string) {
+	if !p.IsSetExtraAuthId() {
+		return BasicUserRegisterReq_ExtraAuthId_DEFAULT
+	}
+	return *p.ExtraAuthId
 }
 
 func (p *BasicUserRegisterReq) GetVerify() (v string) {
@@ -204,9 +215,14 @@ func (p *BasicUserRegisterReq) GetApp() (v *base.App) {
 var fieldIDToName_BasicUserRegisterReq = map[int16]string{
 	1:   "authType",
 	2:   "authId",
-	3:   "verify",
-	4:   "password",
+	3:   "extraAuthId",
+	4:   "verify",
+	5:   "password",
 	255: "app",
+}
+
+func (p *BasicUserRegisterReq) IsSetExtraAuthId() bool {
+	return p.ExtraAuthId != nil
 }
 
 func (p *BasicUserRegisterReq) IsSetPassword() bool {
@@ -263,6 +279,14 @@ func (p *BasicUserRegisterReq) Read(iprot thrift.TProtocol) (err error) {
 		case 4:
 			if fieldTypeId == thrift.STRING {
 				if err = p.ReadField4(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 5:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField5(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
@@ -329,6 +353,17 @@ func (p *BasicUserRegisterReq) ReadField2(iprot thrift.TProtocol) error {
 }
 func (p *BasicUserRegisterReq) ReadField3(iprot thrift.TProtocol) error {
 
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.ExtraAuthId = _field
+	return nil
+}
+func (p *BasicUserRegisterReq) ReadField4(iprot thrift.TProtocol) error {
+
 	var _field string
 	if v, err := iprot.ReadString(); err != nil {
 		return err
@@ -338,7 +373,7 @@ func (p *BasicUserRegisterReq) ReadField3(iprot thrift.TProtocol) error {
 	p.Verify = _field
 	return nil
 }
-func (p *BasicUserRegisterReq) ReadField4(iprot thrift.TProtocol) error {
+func (p *BasicUserRegisterReq) ReadField5(iprot thrift.TProtocol) error {
 
 	var _field *string
 	if v, err := iprot.ReadString(); err != nil {
@@ -378,6 +413,10 @@ func (p *BasicUserRegisterReq) Write(oprot thrift.TProtocol) (err error) {
 		}
 		if err = p.writeField4(oprot); err != nil {
 			fieldId = 4
+			goto WriteFieldError
+		}
+		if err = p.writeField5(oprot); err != nil {
+			fieldId = 5
 			goto WriteFieldError
 		}
 		if err = p.writeField255(oprot); err != nil {
@@ -437,7 +476,26 @@ WriteFieldEndError:
 }
 
 func (p *BasicUserRegisterReq) writeField3(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("verify", thrift.STRING, 3); err != nil {
+	if p.IsSetExtraAuthId() {
+		if err = oprot.WriteFieldBegin("extraAuthId", thrift.STRING, 3); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.ExtraAuthId); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+}
+
+func (p *BasicUserRegisterReq) writeField4(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("verify", thrift.STRING, 4); err != nil {
 		goto WriteFieldBeginError
 	}
 	if err := oprot.WriteString(p.Verify); err != nil {
@@ -448,14 +506,14 @@ func (p *BasicUserRegisterReq) writeField3(oprot thrift.TProtocol) (err error) {
 	}
 	return nil
 WriteFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 begin error: ", p), err)
 WriteFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 end error: ", p), err)
 }
 
-func (p *BasicUserRegisterReq) writeField4(oprot thrift.TProtocol) (err error) {
+func (p *BasicUserRegisterReq) writeField5(oprot thrift.TProtocol) (err error) {
 	if p.IsSetPassword() {
-		if err = oprot.WriteFieldBegin("password", thrift.STRING, 4); err != nil {
+		if err = oprot.WriteFieldBegin("password", thrift.STRING, 5); err != nil {
 			goto WriteFieldBeginError
 		}
 		if err := oprot.WriteString(*p.Password); err != nil {
@@ -467,9 +525,9 @@ func (p *BasicUserRegisterReq) writeField4(oprot thrift.TProtocol) (err error) {
 	}
 	return nil
 WriteFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 4 begin error: ", p), err)
+	return thrift.PrependError(fmt.Sprintf("%T write field 5 begin error: ", p), err)
 WriteFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 4 end error: ", p), err)
+	return thrift.PrependError(fmt.Sprintf("%T write field 5 end error: ", p), err)
 }
 
 func (p *BasicUserRegisterReq) writeField255(oprot thrift.TProtocol) (err error) {
@@ -743,10 +801,12 @@ func (p *BasicUserRegisterResp) String() string {
 
 // 基础用户登录
 type BasicUserLoginReq struct {
-	AuthType string    `thrift:"authType,1" form:"authType" json:"authType" query:"authType"`
-	AuthId   string    `thrift:"authId,2" form:"authId" json:"authId" query:"authId"`
-	Verify   string    `thrift:"verify,3" form:"verify" json:"verify" query:"verify"`
-	App      *base.App `thrift:"app,255" form:"app" json:"app" query:"app"`
+	AuthType string `thrift:"authType,1" form:"authType" json:"authType" query:"authType"`
+	AuthId   string `thrift:"authId,2" form:"authId" json:"authId" query:"authId"`
+	// 扩展认证id
+	ExtraAuthId *string   `thrift:"extraAuthId,3,optional" form:"extraAuthId" json:"extraAuthId" query:"extraAuthId"`
+	Verify      string    `thrift:"verify,4" form:"verify" json:"verify" query:"verify"`
+	App         *base.App `thrift:"app,255" form:"app" json:"app" query:"app"`
 }
 
 func NewBasicUserLoginReq() *BasicUserLoginReq {
@@ -762,6 +822,15 @@ func (p *BasicUserLoginReq) GetAuthType() (v string) {
 
 func (p *BasicUserLoginReq) GetAuthId() (v string) {
 	return p.AuthId
+}
+
+var BasicUserLoginReq_ExtraAuthId_DEFAULT string
+
+func (p *BasicUserLoginReq) GetExtraAuthId() (v string) {
+	if !p.IsSetExtraAuthId() {
+		return BasicUserLoginReq_ExtraAuthId_DEFAULT
+	}
+	return *p.ExtraAuthId
 }
 
 func (p *BasicUserLoginReq) GetVerify() (v string) {
@@ -780,8 +849,13 @@ func (p *BasicUserLoginReq) GetApp() (v *base.App) {
 var fieldIDToName_BasicUserLoginReq = map[int16]string{
 	1:   "authType",
 	2:   "authId",
-	3:   "verify",
+	3:   "extraAuthId",
+	4:   "verify",
 	255: "app",
+}
+
+func (p *BasicUserLoginReq) IsSetExtraAuthId() bool {
+	return p.ExtraAuthId != nil
 }
 
 func (p *BasicUserLoginReq) IsSetApp() bool {
@@ -826,6 +900,14 @@ func (p *BasicUserLoginReq) Read(iprot thrift.TProtocol) (err error) {
 		case 3:
 			if fieldTypeId == thrift.STRING {
 				if err = p.ReadField3(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 4:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField4(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
@@ -892,6 +974,17 @@ func (p *BasicUserLoginReq) ReadField2(iprot thrift.TProtocol) error {
 }
 func (p *BasicUserLoginReq) ReadField3(iprot thrift.TProtocol) error {
 
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.ExtraAuthId = _field
+	return nil
+}
+func (p *BasicUserLoginReq) ReadField4(iprot thrift.TProtocol) error {
+
 	var _field string
 	if v, err := iprot.ReadString(); err != nil {
 		return err
@@ -926,6 +1019,10 @@ func (p *BasicUserLoginReq) Write(oprot thrift.TProtocol) (err error) {
 		}
 		if err = p.writeField3(oprot); err != nil {
 			fieldId = 3
+			goto WriteFieldError
+		}
+		if err = p.writeField4(oprot); err != nil {
+			fieldId = 4
 			goto WriteFieldError
 		}
 		if err = p.writeField255(oprot); err != nil {
@@ -985,7 +1082,26 @@ WriteFieldEndError:
 }
 
 func (p *BasicUserLoginReq) writeField3(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("verify", thrift.STRING, 3); err != nil {
+	if p.IsSetExtraAuthId() {
+		if err = oprot.WriteFieldBegin("extraAuthId", thrift.STRING, 3); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.ExtraAuthId); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+}
+
+func (p *BasicUserLoginReq) writeField4(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("verify", thrift.STRING, 4); err != nil {
 		goto WriteFieldBeginError
 	}
 	if err := oprot.WriteString(p.Verify); err != nil {
@@ -996,9 +1112,9 @@ func (p *BasicUserLoginReq) writeField3(oprot thrift.TProtocol) (err error) {
 	}
 	return nil
 WriteFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 begin error: ", p), err)
 WriteFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 end error: ", p), err)
 }
 
 func (p *BasicUserLoginReq) writeField255(oprot thrift.TProtocol) (err error) {
@@ -1318,8 +1434,10 @@ func (p *BasicUserLoginResp) String() string {
 
 // 修改密码
 type BasicUserResetPasswordReq struct {
-	NewPassword string    `thrift:"newPassword,1" form:"newPassword" json:"newPassword" query:"newPassword"`
-	App         *base.App `thrift:"app,255" form:"app" json:"app" query:"app"`
+	NewPassword string `thrift:"newPassword,1" form:"newPassword" json:"newPassword" query:"newPassword"`
+	// 重置码
+	ResetCode string    `thrift:"resetCode,2" form:"resetCode" json:"resetCode" query:"resetCode"`
+	App       *base.App `thrift:"app,255" form:"app" json:"app" query:"app"`
 }
 
 func NewBasicUserResetPasswordReq() *BasicUserResetPasswordReq {
@@ -1333,6 +1451,10 @@ func (p *BasicUserResetPasswordReq) GetNewPassword() (v string) {
 	return p.NewPassword
 }
 
+func (p *BasicUserResetPasswordReq) GetResetCode() (v string) {
+	return p.ResetCode
+}
+
 var BasicUserResetPasswordReq_App_DEFAULT *base.App
 
 func (p *BasicUserResetPasswordReq) GetApp() (v *base.App) {
@@ -1344,6 +1466,7 @@ func (p *BasicUserResetPasswordReq) GetApp() (v *base.App) {
 
 var fieldIDToName_BasicUserResetPasswordReq = map[int16]string{
 	1:   "newPassword",
+	2:   "resetCode",
 	255: "app",
 }
 
@@ -1373,6 +1496,14 @@ func (p *BasicUserResetPasswordReq) Read(iprot thrift.TProtocol) (err error) {
 		case 1:
 			if fieldTypeId == thrift.STRING {
 				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField2(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
@@ -1426,6 +1557,17 @@ func (p *BasicUserResetPasswordReq) ReadField1(iprot thrift.TProtocol) error {
 	p.NewPassword = _field
 	return nil
 }
+func (p *BasicUserResetPasswordReq) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.ResetCode = _field
+	return nil
+}
 func (p *BasicUserResetPasswordReq) ReadField255(iprot thrift.TProtocol) error {
 	_field := base.NewApp()
 	if err := _field.Read(iprot); err != nil {
@@ -1443,6 +1585,10 @@ func (p *BasicUserResetPasswordReq) Write(oprot thrift.TProtocol) (err error) {
 	if p != nil {
 		if err = p.writeField1(oprot); err != nil {
 			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
 			goto WriteFieldError
 		}
 		if err = p.writeField255(oprot); err != nil {
@@ -1482,6 +1628,23 @@ WriteFieldBeginError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
 WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *BasicUserResetPasswordReq) writeField2(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("resetCode", thrift.STRING, 2); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.ResetCode); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
 }
 
 func (p *BasicUserResetPasswordReq) writeField255(oprot thrift.TProtocol) (err error) {

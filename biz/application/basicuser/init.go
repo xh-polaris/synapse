@@ -15,6 +15,7 @@ func InitService(ctx context.Context, sms sms.Provider, db *orm.DB, idGen id.IDG
 	BasicUserSVC.DomainSVC = service.NewBasicUserDomain(ctx, &service.Component{
 		BasicUserRepo: repo.NewBasicUserRepo(db),
 		AuthRepo:      repo.NewAuthAuthRepo(db),
+		SchoolRepo:    repo.NewSchoolRepo(db),
 		IdGen:         idGen,
 	})
 	return BasicUserSVC
