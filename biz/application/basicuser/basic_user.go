@@ -30,7 +30,7 @@ type BasicUserService struct {
 
 // RegisterNewBasicUser 注册一个新用户
 func (s *BasicUserService) RegisterNewBasicUser(ctx context.Context, req *model.BasicUserRegisterReq) (resp *model.BasicUserRegisterResp, err error) {
-	if err = conf.ValidApp(req.GetApp().GetName()); err != nil {
+	if err = conf.ValidApp(req.GetApp()); err != nil {
 		return nil, err
 	}
 
@@ -47,12 +47,15 @@ func (s *BasicUserService) RegisterNewBasicUser(ctx context.Context, req *model.
 			return nil, errorx.New(errno.PhoneHasExisted, errorx.KV("phone", req.AuthId))
 		}
 	case cst.AuthTypeIdPassword:
+		if req.ExtraAuthId == nil {
+			return nil, errorx.New(errno.MissingParameter, errorx.KV("parameter", "学号"))
+		}
 		ok, err := s.DomainSVC.StudentIDExist(ctx, req.AuthId, *req.ExtraAuthId)
 		if err != nil {
 			return nil, err
 		}
 		if ok {
-			return nil, errorx.New(errno.StudentIDHasExisted, errorx.KV("studentId", req.AuthId))
+			return nil, errorx.New(errno.StudentIDHasExisted, errorx.KV("studentId", *req.ExtraAuthId))
 		}
 	default:
 		return nil, errorx.New(errno.UnSupportAuthType, errorx.KV("type", req.AuthType))
@@ -61,8 +64,13 @@ func (s *BasicUserService) RegisterNewBasicUser(ctx context.Context, req *model.
 	if req.GetPassword() == "" {
 		return nil, errorx.New(errno.MustPassword)
 	}
+
+	var extraAuthId string
+	if req.ExtraAuthId != nil {
+		extraAuthId = *req.ExtraAuthId
+	}
 	var u *entity.BasicUser
-	if u, err = s.DomainSVC.Register(ctx, req.AuthType, req.AuthId, *req.Password); err != nil {
+	if u, err = s.DomainSVC.Register(ctx, req.AuthType, req.AuthId, extraAuthId, *req.Password); err != nil {
 		return nil, err
 	}
 
@@ -104,7 +112,10 @@ func (s *BasicUserService) validPhoneVerify(ctx context.Context, app, phone, cod
 }
 
 func (s *BasicUserService) Login(ctx context.Context, req *model.BasicUserLoginReq) (resp *model.BasicUserLoginResp, err error) {
-	if err = conf.ValidApp(req.GetApp().GetName()); err != nil {
+	if req.App == nil {
+		return nil, errorx.New(errno.MissingParameter, errorx.KV("parameter", "app"))
+	}
+	if err = conf.ValidApp(req.GetApp()); err != nil {
 		return nil, err
 	}
 
@@ -123,11 +134,14 @@ func (s *BasicUserService) Login(ctx context.Context, req *model.BasicUserLoginR
 		if ok {
 			u, err = s.DomainSVC.LoginByPhone(ctx, false, req.AuthId, req.Verify)
 		} else {
-			u, err = s.DomainSVC.Register(ctx, req.AuthType, req.AuthId, "")
+			u, err = s.DomainSVC.Register(ctx, req.AuthType, req.AuthId, "", "")
 		}
 	case cst.AuthTypePhonePassword:
 		u, err = s.DomainSVC.LoginByPhone(ctx, true, req.AuthId, req.Verify)
 	case cst.AuthTypeIdPassword:
+		if req.ExtraAuthId == nil {
+			return nil, errorx.New(errno.MissingParameter, errorx.KV("parameter", "学号"))
+		}
 		u, err = s.DomainSVC.LoginByStudentID(ctx, req.AuthId, *req.ExtraAuthId, req.Verify)
 	default:
 		return nil, errorx.New(errno.UnSupportAuthType, errorx.KV("type", req.AuthType))
@@ -152,7 +166,7 @@ func (s *BasicUserService) Login(ctx context.Context, req *model.BasicUserLoginR
 }
 
 func (s *BasicUserService) ResetPassword(ctx context.Context, req *model.BasicUserResetPasswordReq) (resp *model.BasicUserResetPasswordResp, err error) {
-	if err = conf.ValidApp(req.GetApp().GetName()); err != nil {
+	if err = conf.ValidApp(req.GetApp()); err != nil {
 		return nil, err
 	}
 	info, _ := ctxcache.Get[*token.Info](ctx, cst.TokenInfo)
@@ -163,7 +177,12 @@ func (s *BasicUserService) ResetPassword(ctx context.Context, req *model.BasicUs
 			return nil, errorx.New(errno.ErrResetPassword)
 		}
 	default:
-		if err = s.DomainSVC.ResetPasswordByCode(ctx, info.BasicUserId, req.ResetCode, req.NewPassword); err != nil {
+		if err, ok := conf.VerifyResetCode(req.GetApp(), req.ResetCode); err != nil {
+			return nil, err
+		} else if !ok {
+			return nil, errorx.New(errno.ErrResetPassword)
+		}
+		if err = s.DomainSVC.ResetPassword(ctx, info.BasicUserId, req.NewPassword); err != nil {
 			return nil, errorx.New(errno.ErrResetPassword)
 		}
 	}

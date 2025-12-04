@@ -89,7 +89,7 @@ func (i *userImpl) StudentIDExist(ctx context.Context, schoolId, studentId strin
 	return false, nil
 }
 
-func (i *userImpl) Register(ctx context.Context, authType, authID, password string) (u *entity.BasicUser, err error) {
+func (i *userImpl) Register(ctx context.Context, authType, authId, extraAuthId, password string) (u *entity.BasicUser, err error) {
 	var hashed string
 	if password != "" {
 		hashed, err = crypt.Hash(password)
@@ -105,7 +105,15 @@ func (i *userImpl) Register(ctx context.Context, authType, authID, password stri
 
 	switch authType {
 	case cst.AuthTypePhoneVerify:
-		nu.Phone = &authID
+		nu.Phone = &authId
+	case cst.AuthTypeIdPassword:
+		aid, err := id.FromHex(authId)
+		if err != nil {
+			return nil, err
+		}
+		nu.SchoolID = &aid
+		nu.StudentID = &extraAuthId
+
 	default:
 		return nil, errorx.New(errno.UnSupportAuthType, errorx.KV("type", authType))
 	}
@@ -125,13 +133,6 @@ func (i *userImpl) ResetPassword(ctx context.Context, basicUserId string, passwo
 		return err
 	}
 	return i.BasicUserRepo.ResetPassword(ctx, basicUserId, hashed)
-}
-
-func (i *userImpl) ResetPasswordByCode(ctx context.Context, basicUserId, code, password string) error {
-	if !conf.VerifyResetCode(code) {
-		return errorx.New(errno.ErrResetPassword)
-	}
-	return i.ResetPassword(ctx, basicUserId, password)
 }
 
 func loginLimiter(ctx context.Context, password string, hashed *string, parts ...string) error {

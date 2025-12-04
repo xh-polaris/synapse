@@ -18,6 +18,7 @@ const (
 	TooOftenLoginError  = 200_000_0011
 	StudentIDHasExisted = 200_000_0012
 	StudentIDNotExisted = 200_000_0013
+	MissingParameter    = 200_000_0014
 )
 
 func init() {
@@ -76,6 +77,18 @@ func init() {
 	)
 	code.Register(TooOftenLoginError,
 		"登录失败次数过多, 请 {period} 分钟后再试",
+		code.WithAffectStability(false),
+	)
+	code.Register(StudentIDHasExisted,
+		"student id {studentId} has existed",
+		code.WithAffectStability(false),
+	)
+	code.Register(StudentIDNotExisted,
+		"student id {studentId} not exists",
+		code.WithAffectStability(false),
+	)
+	code.Register(MissingParameter,
+		"missing parameter {parameter}",
 		code.WithAffectStability(false),
 	)
 }
