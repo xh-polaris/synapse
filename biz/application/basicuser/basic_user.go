@@ -46,16 +46,16 @@ func (s *BasicUserService) RegisterNewBasicUser(ctx context.Context, req *model.
 		if ok {
 			return nil, errorx.New(errno.PhoneHasExisted, errorx.KV("phone", req.AuthId))
 		}
-	case cst.AuthTypeIdPassword:
+	case cst.AuthTypeCodePassword:
 		if req.ExtraAuthId == nil {
 			return nil, errorx.New(errno.MissingParameter, errorx.KV("parameter", "学号"))
 		}
-		ok, err := s.DomainSVC.StudentIDExist(ctx, req.AuthId, *req.ExtraAuthId)
+		ok, err := s.DomainSVC.CodeExist(ctx, req.AuthId, *req.ExtraAuthId)
 		if err != nil {
 			return nil, err
 		}
 		if ok {
-			return nil, errorx.New(errno.StudentIDHasExisted, errorx.KV("studentId", *req.ExtraAuthId))
+			return nil, errorx.New(errno.CodeHasExisted, errorx.KV("code", *req.ExtraAuthId))
 		}
 	default:
 		return nil, errorx.New(errno.UnSupportAuthType, errorx.KV("type", req.AuthType))
@@ -112,9 +112,6 @@ func (s *BasicUserService) validPhoneVerify(ctx context.Context, app, phone, cod
 }
 
 func (s *BasicUserService) Login(ctx context.Context, req *model.BasicUserLoginReq) (resp *model.BasicUserLoginResp, err error) {
-	if req.App == nil {
-		return nil, errorx.New(errno.MissingParameter, errorx.KV("parameter", "app"))
-	}
 	if err = conf.ValidApp(req.GetApp()); err != nil {
 		return nil, err
 	}
@@ -138,11 +135,11 @@ func (s *BasicUserService) Login(ctx context.Context, req *model.BasicUserLoginR
 		}
 	case cst.AuthTypePhonePassword:
 		u, err = s.DomainSVC.LoginByPhone(ctx, true, req.AuthId, req.Verify)
-	case cst.AuthTypeIdPassword:
+	case cst.AuthTypeCodePassword:
 		if req.ExtraAuthId == nil {
 			return nil, errorx.New(errno.MissingParameter, errorx.KV("parameter", "学号"))
 		}
-		u, err = s.DomainSVC.LoginByStudentID(ctx, req.AuthId, *req.ExtraAuthId, req.Verify)
+		u, err = s.DomainSVC.LoginByCode(ctx, req.AuthId, *req.ExtraAuthId, req.Verify)
 	default:
 		return nil, errorx.New(errno.UnSupportAuthType, errorx.KV("type", req.AuthType))
 	}
@@ -171,13 +168,13 @@ func (s *BasicUserService) ResetPassword(ctx context.Context, req *model.BasicUs
 	}
 	info, _ := ctxcache.Get[*token.Info](ctx, cst.TokenInfo)
 
-	switch req.ResetCode {
-	case "":
+	switch req.ResetKey {
+	case nil:
 		if err = s.DomainSVC.ResetPassword(ctx, info.BasicUserId, req.NewPassword); err != nil {
 			return nil, errorx.New(errno.ErrResetPassword)
 		}
 	default:
-		if err, ok := conf.VerifyResetCode(req.GetApp(), req.ResetCode); err != nil {
+		if err, ok := conf.VerifyResetKey(req.GetApp(), *req.ResetKey); err != nil {
 			return nil, err
 		} else if !ok {
 			return nil, errorx.New(errno.ErrResetPassword)

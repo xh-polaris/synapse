@@ -51,15 +51,15 @@ func (i *userImpl) LoginByPhone(ctx context.Context, requirePassword bool, phone
 	return basicUserModel2Entity(u)
 }
 
-func (i *userImpl) LoginByStudentID(ctx context.Context, schoolId, studentId, verify string) (*entity.BasicUser, error) {
-	u, err := i.BasicUserRepo.FindByStudentID(ctx, schoolId, studentId)
+func (i *userImpl) LoginByCode(ctx context.Context, schoolId, code, verify string) (*entity.BasicUser, error) {
+	u, err := i.BasicUserRepo.FindByCode(ctx, schoolId, code)
 	if err != nil {
 		return nil, err
 	}
 	if u == nil { // 未注册过
-		return nil, errorx.New(errno.StudentIDNotExisted)
+		return nil, errorx.New(errno.CodeNotExisted, errorx.KV("code", code))
 	}
-	if err = loginLimiter(ctx, verify, u.Password, schoolId, studentId); err != nil {
+	if err = loginLimiter(ctx, verify, u.Password, schoolId, code); err != nil {
 		return nil, err
 	}
 	return basicUserModel2Entity(u)
@@ -76,13 +76,13 @@ func (i *userImpl) PhoneExist(ctx context.Context, phone string) (is bool, err e
 	return false, nil
 }
 
-func (i *userImpl) StudentIDExist(ctx context.Context, schoolId, studentId string) (is bool, err error) {
+func (i *userImpl) CodeExist(ctx context.Context, schoolId, code string) (is bool, err error) {
 	mus, err := i.BasicUserRepo.FindManyBySchoolID(ctx, schoolId)
 	if err != nil {
 		return false, err
 	}
 	for _, mu := range mus {
-		if mu.StudentID != nil && *mu.StudentID == studentId {
+		if mu.Code != nil && *mu.Code == code {
 			return true, nil
 		}
 	}
@@ -106,13 +106,13 @@ func (i *userImpl) Register(ctx context.Context, authType, authId, extraAuthId, 
 	switch authType {
 	case cst.AuthTypePhoneVerify:
 		nu.Phone = &authId
-	case cst.AuthTypeIdPassword:
+	case cst.AuthTypeCodePassword:
 		aid, err := id.FromHex(authId)
 		if err != nil {
 			return nil, err
 		}
 		nu.SchoolID = &aid
-		nu.StudentID = &extraAuthId
+		nu.Code = &extraAuthId
 
 	default:
 		return nil, errorx.New(errno.UnSupportAuthType, errorx.KV("type", authType))

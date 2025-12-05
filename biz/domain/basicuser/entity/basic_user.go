@@ -12,7 +12,6 @@ const (
 type BasicUser struct {
 	ID        string
 	SchoolID  *string
-	StudentID *string
 	Code      *string
 	Phone     *string
 	Password  *string

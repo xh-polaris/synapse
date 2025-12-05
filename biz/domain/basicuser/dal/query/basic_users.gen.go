@@ -29,7 +29,6 @@ func newBasicUser(db *gorm.DB, opts ...gen.DOOption) basicUser {
 	_basicUser.ALL = field.NewAsterisk(tableName)
 	_basicUser.ID = field.NewField(tableName, "id")
 	_basicUser.SchoolID = field.NewField(tableName, "school_id")
-	_basicUser.StudentID = field.NewString(tableName, "student_id")
 	_basicUser.Code = field.NewString(tableName, "code")
 	_basicUser.Phone = field.NewString(tableName, "phone")
 	_basicUser.Password = field.NewString(tableName, "password")
@@ -51,7 +50,6 @@ type basicUser struct {
 	ALL       field.Asterisk
 	ID        field.Field
 	SchoolID  field.Field
-	StudentID field.String
 	Code      field.String
 	Phone     field.String
 	Password  field.String // Password (Encrypted)
@@ -79,7 +77,6 @@ func (b *basicUser) updateTableName(table string) *basicUser {
 	b.ALL = field.NewAsterisk(table)
 	b.ID = field.NewField(table, "id")
 	b.SchoolID = field.NewField(table, "school_id")
-	b.StudentID = field.NewString(table, "student_id")
 	b.Code = field.NewString(table, "code")
 	b.Phone = field.NewString(table, "phone")
 	b.Password = field.NewString(table, "password")
@@ -115,10 +112,9 @@ func (b *basicUser) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (b *basicUser) fillFieldMap() {
-	b.fieldMap = make(map[string]field.Expr, 12)
+	b.fieldMap = make(map[string]field.Expr, 11)
 	b.fieldMap["id"] = b.ID
 	b.fieldMap["school_id"] = b.SchoolID
-	b.fieldMap["student_id"] = b.StudentID
 	b.fieldMap["code"] = b.Code
 	b.fieldMap["phone"] = b.Phone
 	b.fieldMap["password"] = b.Password

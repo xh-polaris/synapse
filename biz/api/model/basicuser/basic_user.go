@@ -1436,8 +1436,8 @@ func (p *BasicUserLoginResp) String() string {
 type BasicUserResetPasswordReq struct {
 	NewPassword string `thrift:"newPassword,1" form:"newPassword" json:"newPassword" query:"newPassword"`
 	// 重置码
-	ResetCode string    `thrift:"resetCode,2" form:"resetCode" json:"resetCode" query:"resetCode"`
-	App       *base.App `thrift:"app,255" form:"app" json:"app" query:"app"`
+	ResetKey *string   `thrift:"resetKey,2,optional" form:"resetKey" json:"resetKey" query:"resetKey"`
+	App      *base.App `thrift:"app,255" form:"app" json:"app" query:"app"`
 }
 
 func NewBasicUserResetPasswordReq() *BasicUserResetPasswordReq {
@@ -1451,8 +1451,13 @@ func (p *BasicUserResetPasswordReq) GetNewPassword() (v string) {
 	return p.NewPassword
 }
 
-func (p *BasicUserResetPasswordReq) GetResetCode() (v string) {
-	return p.ResetCode
+var BasicUserResetPasswordReq_ResetKey_DEFAULT string
+
+func (p *BasicUserResetPasswordReq) GetResetKey() (v string) {
+	if !p.IsSetResetKey() {
+		return BasicUserResetPasswordReq_ResetKey_DEFAULT
+	}
+	return *p.ResetKey
 }
 
 var BasicUserResetPasswordReq_App_DEFAULT *base.App
@@ -1466,8 +1471,12 @@ func (p *BasicUserResetPasswordReq) GetApp() (v *base.App) {
 
 var fieldIDToName_BasicUserResetPasswordReq = map[int16]string{
 	1:   "newPassword",
-	2:   "resetCode",
+	2:   "resetKey",
 	255: "app",
+}
+
+func (p *BasicUserResetPasswordReq) IsSetResetKey() bool {
+	return p.ResetKey != nil
 }
 
 func (p *BasicUserResetPasswordReq) IsSetApp() bool {
@@ -1559,13 +1568,13 @@ func (p *BasicUserResetPasswordReq) ReadField1(iprot thrift.TProtocol) error {
 }
 func (p *BasicUserResetPasswordReq) ReadField2(iprot thrift.TProtocol) error {
 
-	var _field string
+	var _field *string
 	if v, err := iprot.ReadString(); err != nil {
 		return err
 	} else {
-		_field = v
+		_field = &v
 	}
-	p.ResetCode = _field
+	p.ResetKey = _field
 	return nil
 }
 func (p *BasicUserResetPasswordReq) ReadField255(iprot thrift.TProtocol) error {
@@ -1631,14 +1640,16 @@ WriteFieldEndError:
 }
 
 func (p *BasicUserResetPasswordReq) writeField2(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("resetCode", thrift.STRING, 2); err != nil {
-		goto WriteFieldBeginError
-	}
-	if err := oprot.WriteString(p.ResetCode); err != nil {
-		return err
-	}
-	if err = oprot.WriteFieldEnd(); err != nil {
-		goto WriteFieldEndError
+	if p.IsSetResetKey() {
+		if err = oprot.WriteFieldBegin("resetKey", thrift.STRING, 2); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.ResetKey); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
 	}
 	return nil
 WriteFieldBeginError:

@@ -16,8 +16,8 @@ const (
 	UnSupportThirdParty = 200_000_009
 	ErrThirdPartyLogin  = 200_000_0010
 	TooOftenLoginError  = 200_000_0011
-	StudentIDHasExisted = 200_000_0012
-	StudentIDNotExisted = 200_000_0013
+	CodeHasExisted      = 200_000_0012
+	CodeNotExisted      = 200_000_0013
 	MissingParameter    = 200_000_0014
 )
 
@@ -79,12 +79,12 @@ func init() {
 		"登录失败次数过多, 请 {period} 分钟后再试",
 		code.WithAffectStability(false),
 	)
-	code.Register(StudentIDHasExisted,
-		"student id {studentId} has existed",
+	code.Register(CodeHasExisted,
+		"student id {code} has existed",
 		code.WithAffectStability(false),
 	)
-	code.Register(StudentIDNotExisted,
-		"student id {studentId} not exists",
+	code.Register(CodeNotExisted,
+		"student id {code} not exists",
 		code.WithAffectStability(false),
 	)
 	code.Register(MissingParameter,
