@@ -44,6 +44,6 @@ func InternalError(ctx context.Context, c *app.RequestContext, err error) {
 		return
 	}
 
-	logs.CtxErrorf(ctx, "[InternalError]  error: %v \n", err)
+	logs.CtxErrorf(ctx, "[InternalError] error: %v \n", err)
 	c.AbortWithStatusJSON(http.StatusInternalServerError, data{Code: 500, Msg: "internal server error"})
 }

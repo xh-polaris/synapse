@@ -19,12 +19,14 @@ var (
 	Q         = new(Query)
 	Auth      *auth
 	BasicUser *basicUser
+	School    *school
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	*Q = *Use(db, opts...)
 	Auth = &Q.Auth
 	BasicUser = &Q.BasicUser
+	School = &Q.School
 }
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
@@ -32,6 +34,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		db:        db,
 		Auth:      newAuth(db, opts...),
 		BasicUser: newBasicUser(db, opts...),
+		School:    newSchool(db, opts...),
 	}
 }
 
@@ -40,6 +43,7 @@ type Query struct {
 
 	Auth      auth
 	BasicUser basicUser
+	School    school
 }
 
 func (q *Query) Available() bool { return q.db != nil }
@@ -49,6 +53,7 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		db:        db,
 		Auth:      q.Auth.clone(db),
 		BasicUser: q.BasicUser.clone(db),
+		School:    q.School.clone(db),
 	}
 }
 
@@ -65,18 +70,21 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		db:        db,
 		Auth:      q.Auth.replaceDB(db),
 		BasicUser: q.BasicUser.replaceDB(db),
+		School:    q.School.replaceDB(db),
 	}
 }
 
 type queryCtx struct {
 	Auth      IAuthDo
 	BasicUser IBasicUserDo
+	School    ISchoolDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
 		Auth:      q.Auth.WithContext(ctx),
 		BasicUser: q.BasicUser.WithContext(ctx),
+		School:    q.School.WithContext(ctx),
 	}
 }
 

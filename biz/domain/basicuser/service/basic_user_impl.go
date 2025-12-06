@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/bytedance/sonic"
@@ -23,6 +23,7 @@ import (
 type Component struct {
 	BasicUserRepo repo.BasicUserRepo
 	AuthRepo      repo.AuthRepo
+	SchoolRepo    repo.SchoolRepo
 	IdGen         id.IDGenerator
 }
 
@@ -43,23 +44,23 @@ func (i *userImpl) LoginByPhone(ctx context.Context, requirePassword bool, phone
 		return nil, errorx.New(errno.PhoneNotExisted)
 	}
 	if requirePassword {
-		key := fmt.Sprintf("risk:login:passport:%s", phone)
-		limit, _, err := risk.CheckUpperLimit(ctx, key, conf.GetConfig().Token.MaxInPeriod)
-		if err != nil {
+		if err = loginLimiter(ctx, verify, u.Password, phone); err != nil {
 			return nil, err
 		}
-		if limit { // 达到上限, 不允许校验
-			return nil, errorx.New(errno.TooOftenLoginError, errorx.KV("period", strconv.Itoa(conf.GetConfig().SMS.Period/60)))
-		}
-		if u.Password == nil || *u.Password == "" {
-			return nil, errorx.New(errno.NoPassword)
-		}
-		if !crypt.Check(verify, *u.Password) {
-			if err = risk.AddOnce(ctx, key, conf.GetConfig().Token.Period); err != nil {
-				logs.Errorf("record send verify err:%s", err)
-			}
-			return nil, errorx.New(errno.ErrPassword)
-		}
+	}
+	return basicUserModel2Entity(u)
+}
+
+func (i *userImpl) LoginByCode(ctx context.Context, schoolId, code, verify string) (*entity.BasicUser, error) {
+	u, err := i.BasicUserRepo.FindByCode(ctx, schoolId, code)
+	if err != nil {
+		return nil, err
+	}
+	if u == nil { // 未注册过
+		return nil, errorx.New(errno.CodeNotExisted, errorx.KV("code", code))
+	}
+	if err = loginLimiter(ctx, verify, u.Password, schoolId, code); err != nil {
+		return nil, err
 	}
 	return basicUserModel2Entity(u)
 }
@@ -75,7 +76,20 @@ func (i *userImpl) PhoneExist(ctx context.Context, phone string) (is bool, err e
 	return false, nil
 }
 
-func (i *userImpl) Register(ctx context.Context, authType, authID, password string) (u *entity.BasicUser, err error) {
+func (i *userImpl) CodeExist(ctx context.Context, schoolId, code string) (is bool, err error) {
+	mus, err := i.BasicUserRepo.FindManyBySchoolID(ctx, schoolId)
+	if err != nil {
+		return false, err
+	}
+	for _, mu := range mus {
+		if mu.Code != nil && *mu.Code == code {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+func (i *userImpl) Register(ctx context.Context, authType, authId, extraAuthId, password string) (u *entity.BasicUser, err error) {
 	var hashed string
 	if password != "" {
 		hashed, err = crypt.Hash(password)
@@ -91,7 +105,15 @@ func (i *userImpl) Register(ctx context.Context, authType, authID, password stri
 
 	switch authType {
 	case cst.AuthTypePhoneVerify:
-		nu.Phone = &authID
+		nu.Phone = &authId
+	case cst.AuthTypeCodePassword:
+		aid, err := id.FromHex(authId)
+		if err != nil {
+			return nil, err
+		}
+		nu.SchoolID = &aid
+		nu.Code = &extraAuthId
+
 	default:
 		return nil, errorx.New(errno.UnSupportAuthType, errorx.KV("type", authType))
 	}
@@ -111,6 +133,27 @@ func (i *userImpl) ResetPassword(ctx context.Context, basicUserId string, passwo
 		return err
 	}
 	return i.BasicUserRepo.ResetPassword(ctx, basicUserId, hashed)
+}
+
+func loginLimiter(ctx context.Context, password string, hashed *string, parts ...string) error {
+	key := "risk:login:passport:" + strings.Join(parts, ",")
+	limit, _, err := risk.CheckUpperLimit(ctx, key, conf.GetConfig().Token.MaxInPeriod)
+	if err != nil {
+		return err
+	}
+	if limit { // 达到上限, 不允许校验
+		return errorx.New(errno.TooOftenLoginError, errorx.KV("period", strconv.Itoa(conf.GetConfig().SMS.Period/60)))
+	}
+	if hashed == nil || *hashed == "" {
+		return errorx.New(errno.NoPassword)
+	}
+	if !crypt.Check(password, *hashed) {
+		if err = risk.AddOnce(ctx, key, conf.GetConfig().Token.Period); err != nil {
+			logs.Errorf("record send verify err:%s", err)
+		}
+		return errorx.New(errno.ErrPassword)
+	}
+	return nil
 }
 
 func basicUserModel2Entity(u *model.BasicUser) (*entity.BasicUser, error) {
