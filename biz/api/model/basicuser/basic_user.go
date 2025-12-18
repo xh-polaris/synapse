@@ -1434,9 +1434,10 @@ func (p *BasicUserLoginResp) String() string {
 
 // 修改密码
 type BasicUserResetPasswordReq struct {
-	NewPassword string `thrift:"newPassword,1" form:"newPassword" json:"newPassword" query:"newPassword"`
+	UserId      string `thrift:"userId,1" form:"userId" json:"userId" query:"userId"`
+	NewPassword string `thrift:"newPassword,2" form:"newPassword" json:"newPassword" query:"newPassword"`
 	// 重置码
-	ResetKey *string   `thrift:"resetKey,2,optional" form:"resetKey" json:"resetKey" query:"resetKey"`
+	ResetKey *string   `thrift:"resetKey,3,optional" form:"resetKey" json:"resetKey" query:"resetKey"`
 	App      *base.App `thrift:"app,255" form:"app" json:"app" query:"app"`
 }
 
@@ -1445,6 +1446,10 @@ func NewBasicUserResetPasswordReq() *BasicUserResetPasswordReq {
 }
 
 func (p *BasicUserResetPasswordReq) InitDefault() {
+}
+
+func (p *BasicUserResetPasswordReq) GetUserId() (v string) {
+	return p.UserId
 }
 
 func (p *BasicUserResetPasswordReq) GetNewPassword() (v string) {
@@ -1470,8 +1475,9 @@ func (p *BasicUserResetPasswordReq) GetApp() (v *base.App) {
 }
 
 var fieldIDToName_BasicUserResetPasswordReq = map[int16]string{
-	1:   "newPassword",
-	2:   "resetKey",
+	1:   "userId",
+	2:   "newPassword",
+	3:   "resetKey",
 	255: "app",
 }
 
@@ -1513,6 +1519,14 @@ func (p *BasicUserResetPasswordReq) Read(iprot thrift.TProtocol) (err error) {
 		case 2:
 			if fieldTypeId == thrift.STRING {
 				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 3:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField3(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
@@ -1563,10 +1577,21 @@ func (p *BasicUserResetPasswordReq) ReadField1(iprot thrift.TProtocol) error {
 	} else {
 		_field = v
 	}
-	p.NewPassword = _field
+	p.UserId = _field
 	return nil
 }
 func (p *BasicUserResetPasswordReq) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.NewPassword = _field
+	return nil
+}
+func (p *BasicUserResetPasswordReq) ReadField3(iprot thrift.TProtocol) error {
 
 	var _field *string
 	if v, err := iprot.ReadString(); err != nil {
@@ -1600,6 +1625,10 @@ func (p *BasicUserResetPasswordReq) Write(oprot thrift.TProtocol) (err error) {
 			fieldId = 2
 			goto WriteFieldError
 		}
+		if err = p.writeField3(oprot); err != nil {
+			fieldId = 3
+			goto WriteFieldError
+		}
 		if err = p.writeField255(oprot); err != nil {
 			fieldId = 255
 			goto WriteFieldError
@@ -1623,10 +1652,10 @@ WriteStructEndError:
 }
 
 func (p *BasicUserResetPasswordReq) writeField1(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("newPassword", thrift.STRING, 1); err != nil {
+	if err = oprot.WriteFieldBegin("userId", thrift.STRING, 1); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := oprot.WriteString(p.NewPassword); err != nil {
+	if err := oprot.WriteString(p.UserId); err != nil {
 		return err
 	}
 	if err = oprot.WriteFieldEnd(); err != nil {
@@ -1640,8 +1669,25 @@ WriteFieldEndError:
 }
 
 func (p *BasicUserResetPasswordReq) writeField2(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("newPassword", thrift.STRING, 2); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.NewPassword); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+
+func (p *BasicUserResetPasswordReq) writeField3(oprot thrift.TProtocol) (err error) {
 	if p.IsSetResetKey() {
-		if err = oprot.WriteFieldBegin("resetKey", thrift.STRING, 2); err != nil {
+		if err = oprot.WriteFieldBegin("resetKey", thrift.STRING, 3); err != nil {
 			goto WriteFieldBeginError
 		}
 		if err := oprot.WriteString(*p.ResetKey); err != nil {
@@ -1653,9 +1699,9 @@ func (p *BasicUserResetPasswordReq) writeField2(oprot thrift.TProtocol) (err err
 	}
 	return nil
 WriteFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
 WriteFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
 }
 
 func (p *BasicUserResetPasswordReq) writeField255(oprot thrift.TProtocol) (err error) {

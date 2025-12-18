@@ -14,7 +14,6 @@ import (
 	basicuser "github.com/xh-polaris/synapse/biz/domain/basicuser/service"
 	"github.com/xh-polaris/synapse/biz/infra/contract/risk"
 	"github.com/xh-polaris/synapse/biz/infra/contract/sms"
-	ctxcache "github.com/xh-polaris/synapse/biz/pkg/ctxcache/ctx_cache"
 	"github.com/xh-polaris/synapse/biz/pkg/errorx"
 	"github.com/xh-polaris/synapse/biz/pkg/logs"
 	"github.com/xh-polaris/synapse/biz/types/cst"
@@ -166,11 +165,10 @@ func (s *BasicUserService) ResetPassword(ctx context.Context, req *model.BasicUs
 	if err = conf.ValidApp(req.GetApp()); err != nil {
 		return nil, err
 	}
-	info, _ := ctxcache.Get[*token.Info](ctx, cst.TokenInfo)
 
 	switch req.ResetKey {
 	case nil:
-		if err = s.DomainSVC.ResetPassword(ctx, info.BasicUserId, req.NewPassword); err != nil {
+		if err = s.DomainSVC.ResetPassword(ctx, req.UserId, req.NewPassword); err != nil {
 			return nil, errorx.New(errno.ErrResetPassword)
 		}
 	default:
@@ -179,7 +177,7 @@ func (s *BasicUserService) ResetPassword(ctx context.Context, req *model.BasicUs
 		} else if !ok {
 			return nil, errorx.New(errno.ErrResetPassword)
 		}
-		if err = s.DomainSVC.ResetPassword(ctx, info.BasicUserId, req.NewPassword); err != nil {
+		if err = s.DomainSVC.ResetPassword(ctx, req.UserId, req.NewPassword); err != nil {
 			return nil, errorx.New(errno.ErrResetPassword)
 		}
 	}
