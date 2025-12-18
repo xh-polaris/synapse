@@ -170,6 +170,9 @@ func (s *BasicUserService) ResetPassword(ctx context.Context, req *model.BasicUs
 
 	switch req.ResetKey {
 	case nil:
+		if info == nil {
+			return nil, errorx.New(errno.InvalidToken)
+		}
 		if err = s.DomainSVC.ResetPassword(ctx, info.BasicUserId, req.NewPassword); err != nil {
 			return nil, errorx.New(errno.ErrResetPassword)
 		}
@@ -179,7 +182,15 @@ func (s *BasicUserService) ResetPassword(ctx context.Context, req *model.BasicUs
 		} else if !ok {
 			return nil, errorx.New(errno.ErrResetPassword)
 		}
-		if err = s.DomainSVC.ResetPassword(ctx, info.BasicUserId, req.NewPassword); err != nil {
+		if req.BasicUserId == nil {
+			return nil, errorx.New(errno.MissingParameter, errorx.KV("parameter", "basicUserId"))
+		}
+		if _, exist, err := s.DomainSVC.UserIDExist(ctx, req.GetBasicUserId()); err != nil {
+			return nil, err
+		} else if !exist {
+			return nil, errorx.New(errno.UserNotExisted)
+		}
+		if err = s.DomainSVC.ResetPassword(ctx, req.GetBasicUserId(), req.NewPassword); err != nil {
 			return nil, errorx.New(errno.ErrResetPassword)
 		}
 	}

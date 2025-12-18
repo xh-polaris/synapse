@@ -19,6 +19,20 @@ type BasicUserDAO struct {
 	query *query.Query
 }
 
+func (d *BasicUserDAO) FindByID(ctx context.Context, uid string) (*model.BasicUser, error) {
+	buid, err := id.FromHex(uid)
+	if err != nil {
+		return nil, err
+	}
+	user, err := d.query.WithContext(ctx).BasicUser.Where(d.query.BasicUser.ID.Eq(buid)).First()
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
 func (d *BasicUserDAO) FindByPhone(ctx context.Context, phone string) (*model.BasicUser, error) {
 	user, err := d.query.WithContext(ctx).BasicUser.Where(d.query.BasicUser.Phone.Eq(phone)).First()
 	if errors.Is(err, gorm.ErrRecordNotFound) {

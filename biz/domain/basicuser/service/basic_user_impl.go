@@ -35,6 +35,17 @@ type userImpl struct {
 	*Component
 }
 
+func (i *userImpl) UserIDExist(ctx context.Context, userId string) (user *entity.BasicUser, is bool, err error) {
+	u, err := i.BasicUserRepo.FindByID(ctx, userId)
+	if err != nil || u == nil {
+		return nil, false, err
+	}
+	if user, err = basicUserModel2Entity(u); err != nil {
+		return nil, false, err
+	}
+	return user, true, err
+}
+
 func (i *userImpl) LoginByPhone(ctx context.Context, requirePassword bool, phone, verify string) (*entity.BasicUser, error) {
 	u, err := i.BasicUserRepo.FindByPhone(ctx, phone)
 	if err != nil {

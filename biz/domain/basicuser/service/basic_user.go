@@ -7,6 +7,7 @@ import (
 )
 
 type BasicUser interface {
+	UserIDExist(ctx context.Context, userId string) (*entity.BasicUser, bool, error)
 	PhoneExist(ctx context.Context, phone string) (is bool, err error)
 	CodeExist(ctx context.Context, schoolId, code string) (is bool, err error)
 	Register(ctx context.Context, authType, authId, extraAuthId, password string) (*entity.BasicUser, error)

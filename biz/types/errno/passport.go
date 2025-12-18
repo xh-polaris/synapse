@@ -14,11 +14,13 @@ const (
 	ErrPassword         = 200_000_007
 	ErrResetPassword    = 200_000_008
 	UnSupportThirdParty = 200_000_009
-	ErrThirdPartyLogin  = 200_000_0010
-	TooOftenLoginError  = 200_000_0011
-	CodeHasExisted      = 200_000_0012
-	CodeNotExisted      = 200_000_0013
-	MissingParameter    = 200_000_0014
+	ErrThirdPartyLogin  = 200_000_010
+	TooOftenLoginError  = 200_000_011
+	CodeHasExisted      = 200_000_012
+	CodeNotExisted      = 200_000_013
+	MissingParameter    = 200_000_014
+	InvalidToken        = 200_000_015
+	UserNotExisted      = 200_000_016
 )
 
 func init() {
@@ -89,6 +91,10 @@ func init() {
 	)
 	code.Register(MissingParameter,
 		"missing parameter {parameter}",
+		code.WithAffectStability(false),
+	)
+	code.Register(InvalidToken,
+		"invalid token",
 		code.WithAffectStability(false),
 	)
 }
