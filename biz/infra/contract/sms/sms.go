@@ -8,10 +8,6 @@ import (
 	"github.com/xh-polaris/synapse/biz/infra/contract/cache"
 )
 
-const (
-	Passport = "passport"
-)
-
 // Provider 提供SMS相关服务, 支持附有效期(param.Expire)的验证码(param.Code)存储与校验
 type Provider interface {
 	// Send 发送验证码
