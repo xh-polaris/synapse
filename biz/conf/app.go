@@ -7,8 +7,9 @@ import (
 )
 
 type App struct {
-	Status   int
-	ResetKey string
+	Status    int
+	ResetKey  string
+	TicketKey string
 }
 
 // ValidApp check whether the app valid
@@ -34,6 +35,17 @@ func VerifyResetKey(app *base.App, code string) (error, bool) {
 	name := app.GetName()
 	if v, ok := GetConfig().App[name]; ok {
 		return nil, code == v.ResetKey
+	}
+	return nil, false
+}
+
+func VerifyTicketKey(app *base.App, code string) (error, bool) {
+	if app == nil {
+		return errorx.New(errno.MissingParameter, errorx.KV("parameter", "app")), false
+	}
+	name := app.GetName()
+	if v, ok := GetConfig().App[name]; ok {
+		return nil, code == v.TicketKey
 	}
 	return nil, false
 }

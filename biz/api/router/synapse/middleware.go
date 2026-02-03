@@ -55,3 +55,13 @@ func _thirdpartyloginMw() []app.HandlerFunc {
 	// your code...
 	return nil
 }
+
+func _exchangeticketMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _signticketMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}

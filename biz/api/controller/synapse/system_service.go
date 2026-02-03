@@ -48,3 +48,41 @@ func CheckVerifyCode(ctx context.Context, c *app.RequestContext) {
 	}
 	c.JSON(consts.StatusOK, resp)
 }
+
+// SignTicket .
+// @router /system/sign_ticket [POST]
+func SignTicket(ctx context.Context, c *app.RequestContext) {
+	var err error
+	var req system.SignTicketReq
+	err = c.BindAndValidate(&req)
+	if err != nil {
+		invalidParamRequestResponse(c, err.Error())
+		return
+	}
+
+	resp, err := sysapp.SystemSVC.SignTicket(ctx, &req)
+	if err != nil {
+		internalServerErrorResponse(ctx, c, err)
+		return
+	}
+	c.JSON(consts.StatusOK, resp)
+}
+
+// ExchangeTicket .
+// @router /system/exchange_ticket [POST]
+func ExchangeTicket(ctx context.Context, c *app.RequestContext) {
+	var err error
+	var req system.ExchangeTicketReq
+	err = c.BindAndValidate(&req)
+	if err != nil {
+		invalidParamRequestResponse(c, err.Error())
+		return
+	}
+
+	resp, err := sysapp.SystemSVC.ExchangeTicket(ctx, &req)
+	if err != nil {
+		internalServerErrorResponse(ctx, c, err)
+		return
+	}
+	c.JSON(consts.StatusOK, resp)
+}

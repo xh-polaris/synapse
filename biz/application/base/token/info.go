@@ -11,6 +11,7 @@ import (
 )
 
 type Info struct {
+	RawToken    string
 	BasicUserId string `json:"basic_user_id"`
 	UserRole    string `json:"user_role"`
 }
@@ -49,6 +50,7 @@ func ParseJWT(tokenConf *conf.Token, str string) (*Info, error) {
 		info := &Info{
 			BasicUserId: claims["basic_user_id"].(string),
 			UserRole:    claims["user_role"].(string),
+			RawToken:    str,
 		}
 		return info, nil
 	}
