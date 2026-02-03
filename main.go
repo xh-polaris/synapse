@@ -25,6 +25,7 @@ func main() {
 	Init()
 	setLogLevel()
 
+	// 初始化application
 	if err := application.InitApplication(ctx); err != nil {
 		panic("InitializeInfra failed, err=" + err.Error())
 	}
