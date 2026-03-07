@@ -29,6 +29,11 @@ type SystemService struct {
 }
 
 func (s *SystemService) Send(ctx context.Context, req *system.SendVerifyCodeReq) (*system.SendVerifyCodeResp, error) {
+	// 校验app
+	if err := conf.ValidApp(req.GetApp()); err != nil {
+		return nil, err
+	}
+
 	if req.AuthType != cst.AuthTypePhoneVerify {
 		return nil, errorx.New(errno.ErrInvalidAuthType, errorx.KV("type", req.AuthType))
 	}
@@ -46,6 +51,11 @@ func genCode() string {
 }
 
 func (s *SystemService) Check(ctx context.Context, req *system.CheckVerifyCodeReq) (*system.CheckVerifyCodeResp, error) {
+	// 校验app
+	if err := conf.ValidApp(req.GetApp()); err != nil {
+		return nil, err
+	}
+
 	if req.AuthType != cst.AuthTypePhoneVerify {
 		return nil, errorx.New(errno.ErrInvalidAuthType, errorx.KV("type", req.AuthType))
 	}
